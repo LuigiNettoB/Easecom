@@ -1,0 +1,182 @@
+{
+  "_meta": {
+    "descricao": "Fixtures simuladas no formato da API do Mercado Livre (canal A)",
+    "gerado_em": "2026-08-26T14:00:00.000-03:00",
+    "aviso": "Dados ficticios. IDs, nomes e valores nao correspondem a contas reais.",
+    "seller_id": 123456789,
+    "totais": {
+      "anuncios": 8,
+      "pedidos": 30,
+      "envios": 30
+    }
+  },
+  "usuario": {
+    "id": 123456789,
+    "nickname": "LOJA_TESTE_PI",
+    "registration_date": "2019-03-14T10:22:41.000-03:00",
+    "first_name": "Loja",
+    "last_name": "Teste",
+    "country_id": "BR",
+    "site_id": "MLB",
+    "user_type": "normal",
+    "tags": ["normal", "eshop", "mshops"],
+    "permalink": "http://perfil.mercadolivre.com.br/LOJA_TESTE_PI",
+    "seller_reputation": {
+      "level_id": "5_green",
+      "power_seller_status": "platinum",
+      "transactions": {
+        "canceled": 12,
+        "completed": 1847,
+        "total": 1859,
+        "ratings": { "negative": 0.01, "neutral": 0.02, "positive": 0.97 }
+      }
+    },
+    "status": { "site_status": "active" }
+  },
+  "anuncios": [
+    {
+      "id": "MLB1006547759",
+      "title": "Camiseta Basica Algodao Preta",
+      "price": 129.9,
+      "available_quantity": 30,
+      "sold_quantity": 10,
+      "status": "active",
+      "thumbnail": "https://http2.mlstatic.com/D_547759-I.jpg",
+      "permalink": "https://produto.mercadolivre.com.br/MLB-1006547759"
+    },
+    {
+      "id": "MLB1006547760",
+      "title": "Fone De Ouvido Bluetooth Sem Fio 5.3",
+      "price": 189.0,
+      "available_quantity": 14,
+      "sold_quantity": 11,
+      "status": "active",
+      "thumbnail": "https://http2.mlstatic.com/D_547760-I.jpg",
+      "permalink": "https://produto.mercadolivre.com.br/MLB-1006547760"
+    },
+    {
+      "id": "MLB1006547761",
+      "title": "Garrafa Termica Inox 750ml",
+      "price": 79.9,
+      "available_quantity": 53,
+      "sold_quantity": 7,
+      "status": "active",
+      "thumbnail": "https://http2.mlstatic.com/D_547761-I.jpg",
+      "permalink": "https://produto.mercadolivre.com.br/MLB-1006547761"
+    },
+    {
+      "id": "MLB1006547762",
+      "title": "Teclado Mecanico Gamer 87 Teclas Rgb",
+      "price": 349.0,
+      "available_quantity": 10,
+      "sold_quantity": 5,
+      "status": "active",
+      "thumbnail": "https://http2.mlstatic.com/D_547762-I.jpg",
+      "permalink": "https://produto.mercadolivre.com.br/MLB-1006547762"
+    },
+    {
+      "id": "MLB1006547763",
+      "title": "Mochila Couro Sintetico Notebook 15",
+      "price": 219.9,
+      "available_quantity": 12,
+      "sold_quantity": 8,
+      "status": "active",
+      "thumbnail": "https://http2.mlstatic.com/D_547763-I.jpg",
+      "permalink": "https://produto.mercadolivre.com.br/MLB-1006547763"
+    },
+    {
+      "id": "MLB1006547764",
+      "title": "Lampada Led Inteligente Wifi 9w",
+      "price": 59.9,
+      "available_quantity": 77,
+      "sold_quantity": 3,
+      "status": "active",
+      "thumbnail": "https://http2.mlstatic.com/D_547764-I.jpg",
+      "permalink": "https://produto.mercadolivre.com.br/MLB-1006547764"
+    },
+    {
+      "id": "MLB1006547765",
+      "title": "Relogio Smartwatch Tela Amoled",
+      "price": 279.0,
+      "available_quantity": 3,
+      "sold_quantity": 9,
+      "status": "active",
+      "thumbnail": "https://http2.mlstatic.com/D_547765-I.jpg",
+      "permalink": "https://produto.mercadolivre.com.br/MLB-1006547765"
+    },
+    {
+      "id": "MLB1006547766",
+      "title": "Organizador Gaveta 6 Compartimentos",
+      "price": 34.9,
+      "available_quantity": 93,
+      "sold_quantity": 7,
+      "status": "active",
+      "thumbnail": "https://http2.mlstatic.com/D_547766-I.jpg",
+      "permalink": "https://produto.mercadolivre.com.br/MLB-1006547766"
+    }
+  ],
+  "pedidos": [
+    { "id": 2000003508419001, "status": "paid", "date_created": "2026-06-29T12:40:00.000-03:00", "total_amount": 179.0, "paid_amount": 179.0, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419002, "status": "paid", "date_created": "2026-07-02T13:21:00.000-03:00", "total_amount": 189.0, "paid_amount": 189.0, "buyer_nickname": "COMPRADOR_CARLA" },
+    { "id": 2000003508419003, "status": "paid", "date_created": "2026-07-05T09:38:00.000-03:00", "total_amount": 956.8, "paid_amount": 956.8, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419004, "status": "paid", "date_created": "2026-07-08T06:51:00.000-03:00", "total_amount": 219.9, "paid_amount": 219.9, "buyer_nickname": "COMPRADOR_CARLA" },
+    { "id": 2000003508419005, "status": "cancelled", "date_created": "2026-07-11T07:28:00.000-03:00", "total_amount": 69.8, "paid_amount": 0, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419006, "status": "paid", "date_created": "2026-07-13T02:27:00.000-03:00", "total_amount": 567.0, "paid_amount": 567.0, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419007, "status": "paid", "date_created": "2026-07-16T02:31:00.000-03:00", "total_amount": 104.7, "paid_amount": 104.7, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419008, "status": "paid", "date_created": "2026-07-19T07:48:00.000-03:00", "total_amount": 738.6, "paid_amount": 738.6, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419009, "status": "paid", "date_created": "2026-07-22T01:08:00.000-03:00", "total_amount": 69.8, "paid_amount": 97.17, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419010, "status": "paid", "date_created": "2026-07-25T02:15:00.000-03:00", "total_amount": 419.8, "paid_amount": 419.8, "buyer_nickname": "COMPRADOR_DIEGO" },
+    { "id": 2000003508419011, "status": "paid", "date_created": "2026-07-28T10:13:00.000-03:00", "total_amount": 279.0, "paid_amount": 279.0, "buyer_nickname": "COMPRADOR_DIEGO" },
+    { "id": 2000003508419012, "status": "paid", "date_created": "2026-07-30T01:48:00.000-03:00", "total_amount": 827.9, "paid_amount": 827.9, "buyer_nickname": "COMPRADOR_CARLA" },
+    { "id": 2000003508419013, "status": "paid", "date_created": "2026-08-02T05:46:00.000-03:00", "total_amount": 69.8, "paid_amount": 89.06, "buyer_nickname": "COMPRADOR_BRUNO" },
+    { "id": 2000003508419014, "status": "paid", "date_created": "2026-08-05T07:36:00.000-03:00", "total_amount": 159.8, "paid_amount": 159.8, "buyer_nickname": "COMPRADOR_DIEGO" },
+    { "id": 2000003508419015, "status": "paid", "date_created": "2026-08-07T08:01:00.000-03:00", "total_amount": 129.9, "paid_amount": 129.9, "buyer_nickname": "COMPRADOR_DIEGO" },
+    { "id": 2000003508419016, "status": "cancelled", "date_created": "2026-08-09T04:21:00.000-03:00", "total_amount": 79.9, "paid_amount": 0, "buyer_nickname": "COMPRADOR_DIEGO" },
+    { "id": 2000003508419017, "status": "paid", "date_created": "2026-08-11T07:58:00.000-03:00", "total_amount": 1047.0, "paid_amount": 1047.0, "buyer_nickname": "COMPRADOR_BRUNO" },
+    { "id": 2000003508419018, "status": "paid", "date_created": "2026-08-14T02:17:00.000-03:00", "total_amount": 578.7, "paid_amount": 578.7, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419019, "status": "paid", "date_created": "2026-08-16T07:41:00.000-03:00", "total_amount": 69.9, "paid_amount": 99.79, "buyer_nickname": "COMPRADOR_CARLA" },
+    { "id": 2000003508419020, "status": "paid", "date_created": "2026-08-18T06:32:00.000-03:00", "total_amount": 378.0, "paid_amount": 378.0, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419021, "status": "paid", "date_created": "2026-08-20T03:39:00.000-03:00", "total_amount": 558.0, "paid_amount": 558.0, "buyer_nickname": "COMPRADOR_FABIO" },
+    { "id": 2000003508419022, "status": "paid", "date_created": "2026-08-21T04:15:00.000-03:00", "total_amount": 439.8, "paid_amount": 439.8, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419023, "status": "paid", "date_created": "2026-08-22T07:50:00.000-03:00", "total_amount": 1096.5, "paid_amount": 1096.5, "buyer_nickname": "COMPRADOR_CARLA" },
+    { "id": 2000003508419024, "status": "paid", "date_created": "2026-08-23T13:34:00.000-03:00", "total_amount": 439.8, "paid_amount": 439.8, "buyer_nickname": "COMPRADOR_ANA" },
+    { "id": 2000003508419025, "status": "paid", "date_created": "2026-08-24T01:31:00.000-03:00", "total_amount": 259.8, "paid_amount": 259.8, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419026, "status": "payment_in_process", "date_created": "2026-08-25T05:17:00.000-03:00", "total_amount": 439.8, "paid_amount": 0, "buyer_nickname": "COMPRADOR_CARLA" },
+    { "id": 2000003508419027, "status": "paid", "date_created": "2026-08-25T09:11:00.000-03:00", "total_amount": 279.0, "paid_amount": 279.0, "buyer_nickname": "COMPRADOR_ELIS" },
+    { "id": 2000003508419028, "status": "payment_required", "date_created": "2026-08-26T04:53:00.000-03:00", "total_amount": 179.0, "paid_amount": 0, "buyer_nickname": "COMPRADOR_BRUNO" },
+    { "id": 2000003508419029, "status": "paid", "date_created": "2026-08-26T07:36:00.000-03:00", "total_amount": 279.0, "paid_amount": 279.0, "buyer_nickname": "COMPRADOR_DIEGO" },
+    { "id": 2000003508419030, "status": "invalid", "date_created": "2026-08-26T01:51:00.000-03:00", "total_amount": 349.0, "paid_amount": 0, "buyer_nickname": "COMPRADOR_ANA" }
+  ],
+  "envios": [
+    { "id": 41234567801, "order_id": 2000003508419001, "status": "delivered" },
+    { "id": 41234567802, "order_id": 2000003508419002, "status": "delivered" },
+    { "id": 41234567803, "order_id": 2000003508419003, "status": "delivered" },
+    { "id": 41234567804, "order_id": 2000003508419004, "status": "delivered" },
+    { "id": 41234567805, "order_id": 2000003508419005, "status": "cancelled" },
+    { "id": 41234567806, "order_id": 2000003508419006, "status": "delivered" },
+    { "id": 41234567807, "order_id": 2000003508419007, "status": "delivered" },
+    { "id": 41234567808, "order_id": 2000003508419008, "status": "delivered" },
+    { "id": 41234567809, "order_id": 2000003508419009, "status": "delivered" },
+    { "id": 41234567810, "order_id": 2000003508419010, "status": "delivered" },
+    { "id": 41234567811, "order_id": 2000003508419011, "status": "delivered" },
+    { "id": 41234567812, "order_id": 2000003508419012, "status": "delivered" },
+    { "id": 41234567813, "order_id": 2000003508419013, "status": "delivered" },
+    { "id": 41234567814, "order_id": 2000003508419014, "status": "shipped" },
+    { "id": 41234567815, "order_id": 2000003508419015, "status": "shipped" },
+    { "id": 41234567816, "order_id": 2000003508419016, "status": "cancelled" },
+    { "id": 41234567817, "order_id": 2000003508419017, "status": "shipped" },
+    { "id": 41234567818, "order_id": 2000003508419018, "status": "shipped" },
+    { "id": 41234567819, "order_id": 2000003508419019, "status": "ready_to_ship" },
+    { "id": 41234567820, "order_id": 2000003508419020, "status": "ready_to_ship" },
+    { "id": 41234567821, "order_id": 2000003508419021, "status": "ready_to_ship" },
+    { "id": 41234567822, "order_id": 2000003508419022, "status": "ready_to_ship" },
+    { "id": 41234567823, "order_id": 2000003508419023, "status": "ready_to_ship" },
+    { "id": 41234567824, "order_id": 2000003508419024, "status": "handling" },
+    { "id": 41234567825, "order_id": 2000003508419025, "status": "handling" },
+    { "id": 41234567826, "order_id": 2000003508419026, "status": "pending" },
+    { "id": 41234567827, "order_id": 2000003508419027, "status": "handling" },
+    { "id": 41234567828, "order_id": 2000003508419028, "status": "pending" },
+    { "id": 41234567829, "order_id": 2000003508419029, "status": "handling" },
+    { "id": 41234567830, "order_id": 2000003508419030, "status": "pending" }
+  ]
+}

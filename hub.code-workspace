@@ -1,0 +1,37 @@
+{
+  "folders": [
+    { "name": "backend", "path": "backend" },
+    { "name": "web", "path": "web" },
+    { "name": "mobile", "path": "mobile" },
+    { "name": "docs", "path": "docs" }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.venv": true,
+      "**/__pycache__": true,
+      "**/node_modules": true
+    },
+    "search.exclude": {
+      "**/.venv": true,
+      "**/__pycache__": true,
+      "**/node_modules": true
+    },
+    "files.watcherExclude": {
+      "**/.venv/**": true,
+      "**/__pycache__/**": true,
+      "**/node_modules/**": true
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder:backend}/.venv/Scripts/python.exe",
+    "python.testing.pytestEnabled": true,
+    "editor.formatOnSave": true
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "batisteo.vscode-django",
+      "charliermarsh.ruff",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode"
+    ]
+  }
+}
