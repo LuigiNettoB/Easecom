@@ -39,6 +39,11 @@ export function CadastroPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-sm">
+        <img
+            src="../public/logo.png"
+            alt="Logo Easecom"
+            className="mx-auto h-90 w-90 object-contain mb-10"
+          />
         <CardHeader>
           <CardTitle>Criar conta</CardTitle>
           <CardDescription>Cadastre seu vendedor e o usuário administrador.</CardDescription>
