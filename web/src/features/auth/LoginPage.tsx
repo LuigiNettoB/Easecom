@@ -39,7 +39,7 @@ export function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#062f3d] via-[#0a4a6e] to-[#3fae4e] p-4">
-      {/* Padrão decorativo de fundo (cubos), puramente visual */}
+      
       <div className="pointer-events-none absolute inset-0 opacity-[0.15]">
         <svg
           className="h-full w-full"
@@ -69,10 +69,11 @@ export function LoginPage() {
           />
           
           <CardTitle className="text-2xl font-bold text-slate-900">Entrar</CardTitle>
-          <CardDescription className="text-slate-700">
+          <CardDescription className="text-sm text-slate-900">
             Acesse o EaseCom com seu e-mail e senha.
           </CardDescription>
         </CardHeader>
+        
         <CardContent>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit(aoSubmeter)} noValidate>
             <div className="flex flex-col gap-1.5">
