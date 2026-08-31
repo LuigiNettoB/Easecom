@@ -42,7 +42,7 @@ export function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Entrar</CardTitle>
-          <CardDescription>Acesse o HubMulticanal com seu e-mail e senha.</CardDescription>
+          <CardDescription>Acesse o Easecom com seu e-mail e senha.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit(aoSubmeter)} noValidate>
