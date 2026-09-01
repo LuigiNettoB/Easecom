@@ -42,6 +42,12 @@ class Usuario(ModeloBase, AbstractBaseUser, PermissionsMixin):
         blank=True,
     )
     perfil = models.CharField(max_length=20, choices=Perfil.choices, default=Perfil.OPERADOR)
+    foto_perfil = models.ForeignKey(
+        "arquivos.Arquivo", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    foto_banner = models.ForeignKey(
+        "arquivos.Arquivo", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

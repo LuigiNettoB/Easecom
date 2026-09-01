@@ -1,21 +1,52 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import axios from 'axios'
 
 import { api } from '@/shared/api/client'
 import { useAuth } from '@/shared/auth/AuthContext'
+import { cn } from '@/shared/lib/cn'
+import { Avatar } from '@/shared/ui/Avatar'
 import { Button } from '@/shared/ui/Button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/Card'
 import { Input } from '@/shared/ui/Input'
 import { Label } from '@/shared/ui/Label'
 import { trocarSenhaSchema, type TrocarSenhaFormValores } from '@/features/configuracoes/schemas'
-import type { ErroApi } from '@/shared/api/types'
+import type { ErroApi, Usuario } from '@/shared/api/types'
 
 export function ConfiguracoesPage() {
-  const { usuario } = useAuth()
+  const { usuario, atualizarUsuario } = useAuth()
   const [erro, setErro] = useState<string | null>(null)
   const [sucesso, setSucesso] = useState(false)
+
+  const [erroFoto, setErroFoto] = useState<string | null>(null)
+  const [enviandoPerfil, setEnviandoPerfil] = useState(false)
+  const [enviandoBanner, setEnviandoBanner] = useState(false)
+  const inputPerfilRef = useRef<HTMLInputElement>(null)
+  const inputBannerRef = useRef<HTMLInputElement>(null)
+
+  async function enviarFoto(
+    campo: 'foto-perfil' | 'banner',
+    arquivo: File,
+    definirEnviando: (enviando: boolean) => void,
+  ) {
+    setErroFoto(null)
+    definirEnviando(true)
+    try {
+      const formData = new FormData()
+      formData.append('arquivo', arquivo)
+      const { data } = await api.put<Usuario>(`/eu/${campo}`, formData)
+      atualizarUsuario(data)
+    } catch (erroRequisicao) {
+      if (axios.isAxiosError<ErroApi>(erroRequisicao)) {
+        setErroFoto(erroRequisicao.response?.data.mensagem ?? 'Não foi possível enviar a imagem.')
+      } else {
+        setErroFoto('Não foi possível enviar a imagem.')
+      }
+    } finally {
+      definirEnviando(false)
+    }
+  }
 
   const {
     register,
@@ -46,6 +77,78 @@ export function ConfiguracoesPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold">Configurações</h1>
+
+      <Card>
+        <CardContent className="p-0">
+          <button
+            type="button"
+            onClick={() => inputBannerRef.current?.click()}
+            className="group relative flex h-32 w-full items-center justify-center overflow-hidden rounded-t-lg bg-muted"
+          >
+            {usuario?.foto_banner_url && (
+              <img
+                src={usuario.foto_banner_url}
+                alt="Banner da conta"
+                className="h-full w-full object-cover"
+              />
+            )}
+            <span
+              className={cn(
+                'absolute inset-0 flex items-center justify-center bg-black/40 text-sm font-medium text-white opacity-0 transition-opacity group-hover:opacity-100',
+                !usuario?.foto_banner_url && 'opacity-100 bg-black/0 text-muted-foreground',
+              )}
+            >
+              {enviandoBanner ? 'Enviando...' : 'Clique para alterar o banner'}
+            </span>
+            <input
+              ref={inputBannerRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(evento) => {
+                const arquivo = evento.target.files?.[0]
+                if (arquivo) void enviarFoto('banner', arquivo, setEnviandoBanner)
+                evento.target.value = ''
+              }}
+            />
+          </button>
+
+          <div className="flex items-center gap-4 px-6 pb-6 pt-4">
+            <button
+              type="button"
+              onClick={() => inputPerfilRef.current?.click()}
+              className="group relative -mt-12 rounded-full"
+            >
+              <Avatar
+                src={usuario?.foto_perfil_url}
+                nome={usuario?.nome}
+                className="h-20 w-20 border-4 border-background text-xl"
+              />
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                {enviandoPerfil ? 'Enviando...' : 'Alterar'}
+              </span>
+              <input
+                ref={inputPerfilRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(evento) => {
+                  const arquivo = evento.target.files?.[0]
+                  if (arquivo) void enviarFoto('foto-perfil', arquivo, setEnviandoPerfil)
+                  evento.target.value = ''
+                }}
+              />
+            </button>
+            <div>
+              <p className="text-sm font-medium">{usuario?.nome}</p>
+              <p className="text-xs text-muted-foreground">
+                Clique na foto ou no banner para alterar
+              </p>
+              {erroFoto && <p className="mt-1 text-sm text-destructive">{erroFoto}</p>}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

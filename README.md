@@ -28,59 +28,50 @@ fornecedor, anúncio, financeiro) foi implementado ainda.
 
 - Python 3.12
 - Node.js 20+
-- PostgreSQL 16 rodando em `localhost:5432`, com:
-  - banco `hub`, usuário `hub`, senha `hub`
-  - um segundo banco `hub_test`, de propriedade do mesmo usuário `hub`, usado
-    pelos testes automatizados
-  - o usuário `hub` precisa da permissão `CREATEDB` (o Django cria e recria o
-    banco de testes a cada execução da suíte):
-    ```sql
-    ALTER ROLE hub CREATEDB;
-    ```
-- Um projeto no [Supabase](https://supabase.com) com um bucket de Storage
-  criado (usado para upload/download de arquivos) — veja a seção
+- Um projeto no [Supabase](https://supabase.com). O banco de dados usado pelo
+  Django **é o próprio Postgres gerenciado do Supabase** — não há Postgres
+  local nem Docker envolvidos. O mesmo projeto também fornece o bucket de
+  Storage usado para upload/download de arquivos — veja a seção
   [Armazenamento de arquivos](#armazenamento-de-arquivos-supabase-storage).
 
-**Docker é opcional.** Existe um `docker-compose.yml` na raiz só para quem
-preferir rodar o Postgres em container. O caminho principal é o PostgreSQL
-instalado nativamente no Windows — nenhuma etapa deste guia depende de Docker.
+### Conexão com o banco (Supabase Postgres)
 
-> Nesta máquina de desenvolvimento específica não havia PostgreSQL instalado
-> nem permissão de administrador para instalar o pacote oficial. Para
-> destravar o ambiente, foi montada uma instância portátil (binários do EDB
-> descompactados, sem instalador, sem exigir admin) rodando em
-> `C:\Users\<usuário>\pgsql16`, com o banco `hub`/`hub_test` já criados
-> conforme acima. Ela **não inicia sozinha ao ligar o PC** — precisa ser
-> subida manualmente:
-> ```powershell
-> C:\Users\<usuário>\pgsql16\pgsql\bin\pg_ctl.exe -D C:\Users\<usuário>\pgsql16\data -l C:\Users\<usuário>\pgsql16\logfile.txt start
-> # para parar:
-> C:\Users\<usuário>\pgsql16\pgsql\bin\pg_ctl.exe -D C:\Users\<usuário>\pgsql16\data stop
-> ```
-> Se sua máquina já tem o PostgreSQL 16 instalado normalmente (como serviço do
-> Windows), ignore esta nota — ele já escuta em `localhost:5432` sozinho.
+Em **Project Settings → Database → Connect → aba "Session pooler"**, copie os
+dados de conexão para o `backend/.env` (`DB_HOST`, `DB_USER`, `DB_PASSWORD`,
+`DB_NAME`). Use o **session pooler** (porta `5432`, host
+`aws-0-<regiao>.pooler.supabase.com`, usuário `postgres.<project-ref>`) em vez
+da conexão direta (`db.<project-ref>.supabase.co`) — a conexão direta só
+funciona em redes com saída IPv6, o que a maioria das redes domésticas/ISP no
+Brasil não tem.
+
+**Sobre o banco de testes:** o Supabase não permite criar um segundo banco de
+dados via `CREATE DATABASE` (só é fornecido um banco `postgres` por projeto).
+Por isso os testes automatizados rodam no **mesmo banco**, isolados num schema
+`test` (criado uma vez com `CREATE SCHEMA test AUTHORIZATION postgres;`) — ver
+`config/settings/test.py`. O `pytest` já roda sempre com `--reuse-db`
+(configurado em `pyproject.toml`), então ele nunca tenta criar/derrubar o
+banco inteiro, só aplica as migrations dentro do schema `test` na primeira
+execução.
 
 ## Como rodar — Backend
 
-```powershell
+```bash
 cd backend
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements\dev.txt
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements/dev.txt
 
-copy .env.example .env
-# edite .env se necessário (por padrão já aponta para hub/hub/localhost:5432)
+cp .env.example .env
+# edite .env com os dados de conexão do seu projeto Supabase (ver acima)
 
 python manage.py migrate
 python manage.py seed_demo        # opcional: cria 2 vendedores de demonstração (exige DEBUG=True)
 python manage.py runserver
 ```
 
-Se o PowerShell bloquear a ativação do ambiente virtual:
-
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-```
+(No Windows, use `.\.venv\Scripts\Activate.ps1` para ativar o ambiente
+virtual; se o PowerShell bloquear a ativação, rode
+`Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`.)
 
 Com o servidor no ar, a documentação interativa (Swagger) fica em
 `http://localhost:8000/api/v1/docs/`. É possível cadastrar um vendedor, fazer
@@ -249,6 +240,8 @@ entidade de negócio real existe ainda neste esqueleto).
 | POST   | `/api/v1/auth/refresh`   | Renova o `access` token                          |
 | GET    | `/api/v1/eu`             | Dados do usuário autenticado (rota protegida)    |
 | POST   | `/api/v1/eu/senha`       | Troca a senha do usuário autenticado             |
+| PUT    | `/api/v1/eu/foto-perfil` | Envia (ou substitui) a foto de perfil do usuário |
+| PUT    | `/api/v1/eu/banner`      | Envia (ou substitui) o banner do usuário         |
 | POST   | `/api/v1/arquivos`       | Upload de arquivo (multipart) para o Storage     |
 | GET    | `/api/v1/arquivos/<id>`  | Retorna a URL de download de um arquivo enviado  |
 
