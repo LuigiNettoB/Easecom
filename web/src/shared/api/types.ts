@@ -45,34 +45,3 @@ export interface ErroApi {
   mensagem: string
   erros_de_campo?: ErroDeCampo[]
 }
-
-/** Dados simulados de um fixture temporário — não é um contrato real de negócio. */
-export interface ProdutoResumoCanal {
-  id: string
-  title: string
-  price: number
-  available_quantity: number
-  sold_quantity: number
-  status: string
-  thumbnail: string
-  permalink: string
-}
-
-export interface PedidoResumoCanal {
-  id: number
-  status: string
-  date_created: string
-  total_amount: number
-  paid_amount: number
-  buyer_nickname: string
-}
-
-export interface ResumoCanalMercadoLivre {
-  vendedor_nickname: string
-  nivel_reputacao: string
-  totais: { anuncios: number; pedidos: number; envios: number }
-  receita_total: number
-  pedidos_por_status: Record<string, number>
-  top_produtos: ProdutoResumoCanal[]
-  pedidos_recentes: PedidoResumoCanal[]
-}

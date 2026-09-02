@@ -1,5 +1,5 @@
-import { PaginaEmConstrucao } from '@/pages/PaginaEmConstrucao'
+import { CanaisPage } from '@/features/canais/CanaisPage'
 
 export function Canais() {
-  return <PaginaEmConstrucao titulo="Canais" />
+  return <CanaisPage />
 }
