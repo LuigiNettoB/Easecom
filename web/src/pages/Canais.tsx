@@ -1,5 +1,10 @@
-import { PaginaEmConstrucao } from '@/pages/PaginaEmConstrucao'
 
 export function Canais() {
-  return <PaginaEmConstrucao titulo="Canais" />
+  return (
+    <h1>
+      conexão e gerenciamento dos diferentes marketplaces integrados à plataforma.
+    </h1>
+  )
+
 }
+

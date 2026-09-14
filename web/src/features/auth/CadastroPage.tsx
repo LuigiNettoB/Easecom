@@ -46,36 +46,51 @@ export function CadastroPage() {
           preserveAspectRatio="xMidYMid slice"
         >
           <defs>
-            <pattern id="cubes" width="90" height="104" patternUnits="userSpaceOnUse">
-              <g stroke="#e9f0ea" strokeWidth="1" fill="none">
-                <polygon points="45,4 80,24 80,64 45,84 10,64 10,24" />
-                <line x1="45" y1="42" x2="45" y2="82" />
-                <line x1="10" y1="24" x2="45" y2="44" />
-                <line x1="80" y1="24" x2="45" y2="44" />
-              </g>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#cubes)" />
+        <pattern id="carrinhos" width="140" height="140" patternUnits="userSpaceOnUse">
+          <g
+            stroke="#e9f0ea"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          >
+            {/* alça do carrinho */}
+            <path d="M20 25 H32" />
+
+            {/* estrutura do carrinho */}
+            <path d="M32 25 L42 75 H105 L120 40 H36" />
+
+            {/* parte inferior / base */}
+            <path d="M42 75 H105" />
+
+            {/* rodas */}
+            <circle cx="55" cy="91" r="6" />
+            <circle cx="96" cy="91" r="6" />
+          </g>
+        </pattern>
+      </defs>
+          <rect width="100%" height="100%" fill="url(#carrinhos)" />
         </svg>
       </div>
 
-      <Card className="relative w-full max-w-sm rounded-3xl border border-white/30 bg-white/30 shadow-2xl backdrop-blur-xl">
+      <Card className="relative w-full max-w-sm rounded-3xl border border-white/30 bg-black/30 shadow-2xl backdrop-blur-xl">
       <CardHeader className="pb-2">
         <img
             src="../public/logo.png"
             alt="Logo Easecom"
-            className="mx-auto h-90 w-90 object-contain mb-10"
+            className="mx-auto h-90 w-90 object-contain -mb-10"
           />
 
-          <CardTitle className="text-2xl font-bold text-slate-900">Criar conta</CardTitle>
-          <CardDescription className="text-sm text-slate-900">
+          <CardTitle className="text-2xl font-bold text-white">Criar conta</CardTitle>
+          <CardDescription className="text-sm text-white">
             Cadastre seu vendedor e o usuário administrador.</CardDescription>
         </CardHeader>
 
         <CardContent>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit(aoSubmeter)} noValidate>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="nome_vendedor" >Nome da empresa</Label>
+              
+              <Label htmlFor="nome_vendedor" className="text-white">Nome da empresa</Label>
               <Input 
                 id="nome_vendedor" 
                 className="h-14 rounded-2xl border-white/40 bg-white/60 pl-10 text-slate-900 placeholder:text-slate-500"
@@ -85,7 +100,7 @@ export function CadastroPage() {
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="nome_usuario">Seu nome</Label>
+              <Label htmlFor="nome_usuario" className="text-white">Seu nome</Label>
               <Input 
                 id="nome_usuario" 
                 className="h-14 rounded-2xl border-white/40 bg-white/60 pl-10 text-slate-900 placeholder:text-slate-500"
@@ -95,7 +110,7 @@ export function CadastroPage() {
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="email" className="text-white">E-mail</Label>
               <Input 
                 id="email" 
                 type="email" 
@@ -105,7 +120,7 @@ export function CadastroPage() {
               {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="senha">Senha</Label>
+              <Label htmlFor="senha" className="text-white">Senha</Label>
               <Input
                 id="senha"
                 type="password"
@@ -124,7 +139,7 @@ export function CadastroPage() {
               {isSubmitting ? 'Cadastrando...' : 'Criar conta'}
             </Button>
           </form>
-          <p className="mt-4 flex items-center justify-center gap-1 text-center text-sm text-slate-700">
+          <p className="mt-4 flex items-center justify-center gap-1 text-center text-sm text-emerald-300">
             Já tem conta?{' '}
             <Link to="/login" className="font-bold hover:underline">
               Entrar

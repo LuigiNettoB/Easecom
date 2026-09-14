@@ -38,46 +38,60 @@ export function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#062f3d] via-[#0a4a6e] to-[#3fae4e] p-4">
-      
-      <div className="pointer-events-none absolute inset-0 opacity-[0.15]">
-        <svg
-          className="h-full w-full"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="xMidYMid slice"
-        >
-          <defs>
-            <pattern id="cubes" width="90" height="104" patternUnits="userSpaceOnUse">
-              <g stroke="#e9f0ea" strokeWidth="1" fill="none">
-                <polygon points="45,4 80,24 80,64 45,84 10,64 10,24" />
-                <line x1="45" y1="42" x2="45" y2="82" />
-                <line x1="10" y1="24" x2="45" y2="44" />
-                <line x1="80" y1="24" x2="45" y2="44" />
-              </g>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#cubes)" />
-        </svg>
-      </div>
+  <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#062f3d] via-[#0a4a6e] to-[#3fae4e] p-4">
+  {/* Padrão decorativo de fundo: carrinhos de compras */}
+  <div className="pointer-events-none absolute inset-0 opacity-[0.15]">
+    <svg
+      className="h-full w-full"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <defs>
+        <pattern id="carrinhos" width="140" height="140" patternUnits="userSpaceOnUse">
+          <g
+            stroke="#e9f0ea"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          >
+            {/* alça do carrinho */}
+            <path d="M20 25 H32" />
 
-      <Card className="relative w-full max-w-sm rounded-3xl border border-white/30 bg-white/30 shadow-2xl backdrop-blur-xl">
+            {/* estrutura do carrinho */}
+            <path d="M32 25 L42 75 H105 L120 40 H36" />
+
+            {/* parte inferior / base */}
+            <path d="M42 75 H105" />
+
+            {/* rodas */}
+            <circle cx="55" cy="91" r="6" />
+            <circle cx="96" cy="91" r="6" />
+          </g>
+        </pattern>
+      </defs>
+
+      <rect width="100%" height="100%" fill="url(#carrinhos)" />
+    </svg>
+  </div>
+      <Card className="relative w-full max-w-sm rounded-3xl border border-white/30 bg-black/30 shadow-2xl backdrop-blur-xl">
         <CardHeader className="pb-2">
           <img
             src="../public/logo.png"
             alt="Logo EaseCom"
-            className="mx-auto mb-4 h-90 w-90 object-contain"
+            className="mx-auto -mb-10 h-90 w-90 object-contain"
           />
-          
-          <CardTitle className="text-2xl font-bold text-slate-900">Entrar</CardTitle>
-          <CardDescription className="text-sm text-slate-900">
+
+          <CardTitle className="text-2xl font-bold text-white">Entrar</CardTitle>
+          <CardDescription className="text-sm text-white">
             Acesse o EaseCom com seu e-mail e senha.
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit(aoSubmeter)} noValidate>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email" className="text-slate-700">
+              <Label htmlFor="email" className="text-white">
                 E-mail
               </Label>
               <div className="relative">
@@ -86,7 +100,7 @@ export function LoginPage() {
                   id="email"
                   type="email"
                   autoComplete="email"
-                  className="h-14 rounded-2xl border-white/40 bg-white/60 pl-10 text-slate-900 placeholder:text-slate-500"
+                  className="h-14 rounded-2xl border-white/40 bg-white/60 pl-10 text-white placeholder:text-slate-500"
                   {...register('email')}
                 />
               </div>
@@ -94,7 +108,7 @@ export function LoginPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password" className="text-slate-700">
+              <Label htmlFor="password" className="text-white">
                 Senha
               </Label>
               <div className="relative">
@@ -103,7 +117,7 @@ export function LoginPage() {
                   id="password"
                   type={mostrarSenha ? 'text' : 'password'}
                   autoComplete="current-password"
-                  className="h-14 rounded-2xl border-white/40 bg-white/60 pl-10 pr-10 text-slate-900 placeholder:text-slate-500"
+                  className="h-14 rounded-2xl border-white/40 bg-white/60 pl-10 pr-10 text-white placeholder:text-slate-500"
                   {...register('password')}
                 />
                 <button
@@ -121,7 +135,7 @@ export function LoginPage() {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="text-sm text-[#00305c] hover:underline"
+                  className="text-sm text-emerald-300 hover:underline"
                 >
                   Esqueceu a senha?
                 </button>
@@ -139,7 +153,7 @@ export function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-4 flex items-center justify-center gap-1 text-center text-sm text-slate-700">
+          <p className="mt-4 flex items-center justify-center gap-1 text-center text-sm text-emerald-300">
             Ainda não tem conta?{' '}
             <Link to="/cadastro" className="font-bold hover:underline">
               Cadastre-se
