@@ -10,6 +10,7 @@ interface AuthContextValor {
   autenticado: boolean
   entrar: (dados: LoginEntrada) => Promise<void>
   sair: () => void
+  atualizarUsuario: (usuario: Usuario) => void
 }
 
 const AuthContext = createContext<AuthContextValor | undefined>(undefined)
@@ -51,7 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ usuario, carregando, autenticado: usuario !== null, entrar, sair }}
+      value={{
+        usuario,
+        carregando,
+        autenticado: usuario !== null,
+        entrar,
+        sair,
+        atualizarUsuario: setUsuario,
+      }}
     >
       {children}
     </AuthContext.Provider>

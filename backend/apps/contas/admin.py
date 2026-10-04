@@ -17,10 +17,14 @@ class UsuarioAdmin(UserAdmin):
     list_display = ("email", "nome", "vendedor", "perfil", "is_staff", "is_active")
     list_filter = ("perfil", "is_staff", "is_active", "vendedor")
     search_fields = ("email", "nome")
+    raw_id_fields = ("foto_perfil", "foto_banner")
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Dados pessoais", {"fields": ("nome", "vendedor", "perfil")}),
+        (
+            "Dados pessoais",
+            {"fields": ("nome", "vendedor", "perfil", "foto_perfil", "foto_banner")},
+        ),
         (
             "Permissões",
             {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")},

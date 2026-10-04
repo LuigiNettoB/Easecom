@@ -1,16 +1,23 @@
 from drf_spectacular.utils import extend_schema
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from apps.arquivos.serializers import ArquivoEntradaSerializer
 from apps.autenticacao.serializers import (
     CadastroEntradaSerializer,
     TokenObtainPersonalizadoSerializer,
     TrocarSenhaEntradaSerializer,
     UsuarioSaidaSerializer,
 )
-from apps.autenticacao.services import cadastrar_vendedor_e_administrador, trocar_senha
+from apps.autenticacao.services import (
+    atualizar_foto_banner,
+    atualizar_foto_perfil,
+    cadastrar_vendedor_e_administrador,
+    trocar_senha,
+)
 
 
 @extend_schema(tags=["autenticacao"])
@@ -63,3 +70,35 @@ class TrocarSenhaView(APIView):
         entrada.is_valid(raise_exception=True)
         trocar_senha(usuario=request.user, **entrada.validated_data)
         return Response(status=204)
+
+
+@extend_schema(tags=["eu"])
+class FotoPerfilView(APIView):
+    """Envia (ou substitui) a foto de perfil do usuário autenticado."""
+
+    parser_classes = [MultiPartParser]
+
+    @extend_schema(request=ArquivoEntradaSerializer, responses={200: UsuarioSaidaSerializer})
+    def put(self, request):
+        entrada = ArquivoEntradaSerializer(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        usuario = atualizar_foto_perfil(
+            usuario=request.user, arquivo_upload=entrada.validated_data["arquivo"]
+        )
+        return Response(UsuarioSaidaSerializer(usuario).data)
+
+
+@extend_schema(tags=["eu"])
+class FotoBannerView(APIView):
+    """Envia (ou substitui) a foto de banner do usuário autenticado."""
+
+    parser_classes = [MultiPartParser]
+
+    @extend_schema(request=ArquivoEntradaSerializer, responses={200: UsuarioSaidaSerializer})
+    def put(self, request):
+        entrada = ArquivoEntradaSerializer(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        usuario = atualizar_foto_banner(
+            usuario=request.user, arquivo_upload=entrada.validated_data["arquivo"]
+        )
+        return Response(UsuarioSaidaSerializer(usuario).data)

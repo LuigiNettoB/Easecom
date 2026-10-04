@@ -12,6 +12,8 @@ export interface Usuario {
   perfil: Perfil
   vendedor: Vendedor
   criado_em: string
+  foto_perfil_url: string | null
+  foto_banner_url: string | null
 }
 
 export interface TokensAutenticacao {

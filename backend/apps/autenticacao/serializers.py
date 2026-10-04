@@ -2,6 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from apps.arquivos.services import obter_url_arquivo
 from apps.contas.models import Usuario, Vendedor
 
 
@@ -33,10 +34,27 @@ class VendedorSaidaSerializer(serializers.ModelSerializer):
 
 class UsuarioSaidaSerializer(serializers.ModelSerializer):
     vendedor = VendedorSaidaSerializer(read_only=True)
+    foto_perfil_url = serializers.SerializerMethodField()
+    foto_banner_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Usuario
-        fields = ["id", "email", "nome", "perfil", "vendedor", "criado_em"]
+        fields = [
+            "id",
+            "email",
+            "nome",
+            "perfil",
+            "vendedor",
+            "criado_em",
+            "foto_perfil_url",
+            "foto_banner_url",
+        ]
+
+    def get_foto_perfil_url(self, obj):
+        return obter_url_arquivo(arquivo=obj.foto_perfil) if obj.foto_perfil_id else None
+
+    def get_foto_banner_url(self, obj):
+        return obter_url_arquivo(arquivo=obj.foto_banner) if obj.foto_banner_id else None
 
 
 class TokenObtainPersonalizadoSerializer(TokenObtainPairSerializer):

@@ -1,5 +1,6 @@
 from django.db import IntegrityError, transaction
 
+from apps.arquivos.services import enviar_arquivo
 from apps.contas.models import Perfil, Usuario, Vendedor
 from apps.core.exceptions import ErroDeNegocio
 
@@ -39,6 +40,22 @@ def trocar_senha(*, usuario: Usuario, senha_atual, senha_nova) -> None:
 
     usuario.set_password(senha_nova)
     usuario.save(update_fields=["password"])
+
+
+def atualizar_foto_perfil(*, usuario: Usuario, arquivo_upload) -> Usuario:
+    """Envia uma nova foto de perfil para o Storage e a associa ao usuário."""
+    arquivo = enviar_arquivo(vendedor=usuario.vendedor, arquivo_upload=arquivo_upload)
+    usuario.foto_perfil = arquivo
+    usuario.save(update_fields=["foto_perfil", "atualizado_em"])
+    return usuario
+
+
+def atualizar_foto_banner(*, usuario: Usuario, arquivo_upload) -> Usuario:
+    """Envia um novo banner para o Storage e o associa ao usuário."""
+    arquivo = enviar_arquivo(vendedor=usuario.vendedor, arquivo_upload=arquivo_upload)
+    usuario.foto_banner = arquivo
+    usuario.save(update_fields=["foto_banner", "atualizado_em"])
+    return usuario
 
 
 def _erro_email_duplicado() -> ErroDeNegocio:
