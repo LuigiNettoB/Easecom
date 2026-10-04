@@ -1,11 +1,10 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { CadastroPage } from '@/features/auth/CadastroPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { Canais } from '@/pages/Canais'
 import { Catalogo } from '@/pages/Catalogo'
 import { Configuracoes } from '@/pages/Configuracoes'
-import { Estoque } from '@/pages/Estoque'
 import { Financeiro } from '@/pages/Financeiro'
 import { Fornecedores } from '@/pages/Fornecedores'
 import { Home } from '@/pages/Home'
@@ -26,7 +25,7 @@ export function AppRoutes() {
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/catalogo" element={<Catalogo />} />
-          <Route path="/estoque" element={<Estoque />} />
+          <Route path="/estoque" element={<Navigate replace to="/catalogo" />} />
           <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/fornecedores" element={<Fornecedores />} />
           <Route path="/financeiro" element={<Financeiro />} />

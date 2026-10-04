@@ -7,7 +7,6 @@ import { cn } from '@/shared/lib/cn'
 import {
   HomeIcon,
   ClipboardDocumentListIcon,
-  ArchiveBoxIcon,
   ShoppingCartIcon,
   UserGroupIcon,
   CurrencyDollarIcon,
@@ -18,7 +17,6 @@ import {
 const ITENS_MENU = [
   { rota: '/', rotulo: 'Início', icone: HomeIcon },
   { rota: '/catalogo', rotulo: 'Catálogo', icone: ClipboardDocumentListIcon },
-  { rota: '/estoque', rotulo: 'Estoque', icone: ArchiveBoxIcon },
   { rota: '/pedidos', rotulo: 'Pedidos', icone: ShoppingCartIcon },
   { rota: '/fornecedores', rotulo: 'Fornecedores', icone: UserGroupIcon },
   { rota: '/financeiro', rotulo: 'Financeiro', icone: CurrencyDollarIcon },
