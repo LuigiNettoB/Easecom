@@ -33,9 +33,12 @@ export function Layout() {
   const { usuario, sair } = useAuth()
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="flex w-60 flex-col border-r border-border bg-muted p-4">
-        <p className="mb-6 text-lg font-semibold">Easecom</p>
+    <div className="flex min-h-screen ">
+      <aside className="flex w-60 flex-col border-r border-border bg-[#00305c] p-4">
+        <div className="mb-6 flex items-center gap-2">
+          <img src="../public/icone_carrinho.png" alt="" className="h-7 w-7" />
+          <p className="text-lg text-white font-semibold">Easecom</p>
+        </div>
 
         <nav className="flex flex-col gap-1">
           {ITENS_MENU.map((item) => {
@@ -48,8 +51,8 @@ export function Layout() {
                 end={item.rota === '/'}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium hover:bg-green-300',
-                    isActive && 'bg-green-500 text-primary',
+                    'flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm text-white font-medium hover:text-black hover:bg-green-300',
+                    isActive && 'bg-green-500 text-black',
                   )
                 }
               >
@@ -61,7 +64,7 @@ export function Layout() {
         </nav>
       </aside>
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col ">
         <header className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <p className="text-sm font-medium">{usuario?.nome}</p>
