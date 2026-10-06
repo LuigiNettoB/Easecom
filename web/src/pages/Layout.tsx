@@ -1,7 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 
 import { useAuth } from '@/shared/auth/AuthContext'
-import { Avatar } from '@/shared/ui/Avatar'
 import { Button } from '@/shared/ui/Button'
 import { cn } from '@/shared/lib/cn'
 
@@ -68,9 +67,7 @@ export function Layout() {
         <header className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <p className="text-sm font-medium">{usuario?.nome}</p>
-            <p className="text-xs text-muted-foreground">
-              {usuario?.vendedor.nome}
-            </p>
+            <p className="text-xs text-muted-foreground">{usuario?.vendedor.nome}</p>
           </div>
 
           <Button variant="outline" size="sm" onClick={sair}>

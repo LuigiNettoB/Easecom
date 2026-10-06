@@ -37,7 +37,9 @@ export function MultiSelectDropdown({
   }, [])
 
   function alternarOpcao(opcao: string) {
-    onChange(selected.includes(opcao) ? selected.filter((item) => item !== opcao) : [...selected, opcao])
+    onChange(
+      selected.includes(opcao) ? selected.filter((item) => item !== opcao) : [...selected, opcao],
+    )
   }
 
   return (
