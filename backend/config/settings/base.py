@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "apps.autenticacao",
     "apps.arquivos",
     "apps.canais",
+    "apps.pedidos",
 ]
 
 MIDDLEWARE = [
@@ -112,6 +113,17 @@ SUPABASE_SERVICE_ROLE_KEY = env("SUPABASE_SERVICE_ROLE_KEY", default="")
 SUPABASE_STORAGE_BUCKET = env("SUPABASE_STORAGE_BUCKET", default="images")
 SUPABASE_STORAGE_BUCKET_PUBLICO = env.bool("SUPABASE_STORAGE_BUCKET_PUBLICO", default=True)
 
+# Credenciais do app cadastrado no DevCenter do Mercado Livre — nunca mudam
+# por usuário (diferente dos tokens OAuth, que são por vendedor e ficam no
+# banco, ver apps.canais.models.MercadoLivreToken).
+MERCADO_LIVRE_CLIENT_ID = env("MERCADO_LIVRE_CLIENT_ID", default="")
+MERCADO_LIVRE_CLIENT_SECRET = env("MERCADO_LIVRE_CLIENT_SECRET", default="")
+MERCADO_LIVRE_REDIRECT_URI = env("MERCADO_LIVRE_REDIRECT_URI", default="")
+
+# Para onde o callback OAuth do Mercado Livre redireciona o navegador depois
+# de processar o code (sucesso ou erro).
+FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -152,6 +164,7 @@ SPECTACULAR_SETTINGS = {
         {"name": "autenticacao", "description": "Cadastro, login e renovação de token"},
         {"name": "eu", "description": "Dados do usuário autenticado"},
         {"name": "arquivos", "description": "Upload e download de arquivos (Supabase Storage)"},
+        {"name": "pedidos", "description": "Pedidos e vendas de todos os canais conectados"},
         {
             "name": "canais",
             "description": "Dados simulados de canais de venda (fixture temporário)",

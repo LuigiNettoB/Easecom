@@ -142,14 +142,9 @@ backend/
     ├── contas/           Vendedor, Usuario, Perfil
     ├── autenticacao/     serializers/views/services de cadastro, login e refresh
     ├── arquivos/         upload/download de arquivos via Supabase Storage
-    └── canais/           ⚠️ temporário: fixture estático simulando a API do Mercado Livre
+    ├── canais/           integração OAuth real com o Mercado Livre (ver seção abaixo)
+    └── pedidos/          pedidos de todos os canais em formato único (ver seção abaixo)
 ```
-
-> `apps/canais` é um teste temporário, não um módulo de negócio real: serve um
-> fixture estático (`apps/canais/fixtures/mercado_livre.json`) via
-> `GET /api/v1/canais/mercado-livre/resumo`, sem banco, sem multi-tenancy, só
-> para a Home do web ter algo para mostrar enquanto a integração de verdade
-> com marketplaces não existe. Remova quando não precisar mais dele.
 
 Views nunca contêm regra de negócio — a lógica de cada operação composta vive
 em `services.py` dentro do app correspondente (ver
@@ -167,9 +162,12 @@ web/src/
 │   ├── ui/       componentes do design system (Button, Input, Card...)
 │   └── lib/      utilitários (ex.: cn())
 ├── features/
-│   └── auth/     telas de login e cadastro
-└── pages/        Layout autenticado, Home, NotFound e páginas ainda vazias
-                  (Catálogo, Estoque, Pedidos, Fornecedores, Financeiro, Canais)
+│   ├── auth/           telas de login e cadastro
+│   ├── canais/         conexão com o Mercado Livre (OAuth)
+│   └── configuracoes/  dados da conta, foto/banner, trocar senha
+└── pages/        Layout autenticado, Home, Canais, Configurações, Notificações,
+                  NotFound e páginas ainda vazias (Catálogo, Estoque, Pedidos,
+                  Fornecedores, Financeiro)
 ```
 
 ### Mobile
@@ -244,6 +242,13 @@ entidade de negócio real existe ainda neste esqueleto).
 | PUT    | `/api/v1/eu/banner`      | Envia (ou substitui) o banner do usuário         |
 | POST   | `/api/v1/arquivos`       | Upload de arquivo (multipart) para o Storage     |
 | GET    | `/api/v1/arquivos/<id>`  | Retorna a URL de download de um arquivo enviado  |
+| GET    | `/api/v1/canais/mercado-livre/conectar` | Retorna a URL de autorização OAuth do Mercado Livre |
+| GET    | `/api/v1/canais/mercado-livre/callback` | Callback OAuth (chamado pelo Mercado Livre, não pelo front) |
+| GET    | `/api/v1/canais/mercado-livre/status`   | Diz se o vendedor já conectou uma conta do Mercado Livre |
+| POST   | `/api/v1/pedidos/sincronizar` | Busca os pedidos nos canais conectados e atualiza a cópia do hub |
+| GET    | `/api/v1/pedidos`             | Lista os pedidos do vendedor (filtros: `canal`, `status`, `entregue`, `realizado_de`, `realizado_ate`) |
+| GET    | `/api/v1/pedidos/<id>`        | Detalhe de um pedido com seus itens |
+| GET    | `/api/v1/vendas/resumo`       | Totais de venda somando todos os canais |
 
 Todo erro de API segue o mesmo formato:
 
@@ -303,3 +308,106 @@ No CI (`.github/workflows/ci.yml`), essas credenciais vêm de *secrets* do
 repositório — configure em **Settings → Secrets and variables → Actions**:
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_STORAGE_BUCKET`. Sem
 isso, o job `pytest` do CI falha nos testes de `arquivos`.
+
+## Pedidos de todos os canais
+
+O front nunca fala com um marketplace: ele consome `/api/v1/pedidos` e
+`/api/v1/vendas/resumo`, que devolvem os pedidos num formato único do hub
+(`apps.pedidos.models.Pedido` e `ItemPedido`), seja qual for o canal de origem.
+
+- **Adaptadores** (`apps/pedidos/adaptadores/`): um módulo por canal, todos com
+  o mesmo contrato (`CANAL`, `esta_conectado`, `buscar_pedidos`). O adaptador
+  traduz o pedido do marketplace para `PedidoExterno`, incluindo o status
+  (`PENDENTE`, `PAGO`, `CANCELADO`, `OUTRO`; o valor original fica em
+  `status_no_canal`). Para integrar outro marketplace, crie o módulo dele e
+  acrescente em `ADAPTADORES` — services, rotas e front não mudam.
+- **Sincronização** (`apps.pedidos.services.sincronizar_pedidos`): copia os
+  pedidos dos canais conectados para o banco. É manual por enquanto —
+  `POST /api/v1/pedidos/sincronizar` (vendedor logado) ou
+  `python manage.py sincronizar_pedidos [--vendedor "Nome"]` (todos). Rodar de
+  novo atualiza os pedidos existentes, sem duplicar.
+- As rotas de leitura só consultam o banco; nenhuma delas chama o marketplace.
+
+Ao criar uma migração nova, rode `python manage.py migrate` **antes** do
+`pytest`: os testes usam o mesmo banco com `search_path=test,public`, então um
+`pytest` rodado primeiro cria as tabelas novas no schema `test` e marca a
+migração como aplicada, e o ambiente de desenvolvimento fica sem as tabelas.
+
+## Integração com o Mercado Livre (OAuth)
+
+Cada vendedor conecta a própria conta do Mercado Livre — não existe um token
+global fixo no `.env`. Só `MERCADO_LIVRE_CLIENT_ID`/`MERCADO_LIVRE_CLIENT_SECRET`
+(do app cadastrado no [DevCenter](https://developers.mercadolivre.com.br))
+são fixos e ficam no `.env`; os tokens de cada vendedor (`access_token`,
+`refresh_token`, `expires_at`) ficam no banco, no model
+`apps.canais.models.MercadoLivreToken` (um por vendedor).
+
+**Configuração** (`backend/.env`, veja `.env.example`):
+
+```
+MERCADO_LIVRE_CLIENT_ID=<client id do app no DevCenter>
+MERCADO_LIVRE_CLIENT_SECRET=<client secret do app no DevCenter>
+MERCADO_LIVRE_REDIRECT_URI=https://SEU-TUNEL-OU-DOMINIO/api/v1/canais/mercado-livre/callback
+FRONTEND_URL=http://localhost:5173
+```
+
+`MERCADO_LIVRE_REDIRECT_URI` precisa ser **https** e bater, caractere por
+caractere, com o `redirect_uri` cadastrado no DevCenter — o Mercado Livre não
+aceita `http://localhost`. Para testar localmente, exponha a porta 8000 com
+um túnel e cadastre a URL do túnel + o caminho
+`/api/v1/canais/mercado-livre/callback` como `redirect_uri` no DevCenter.
+
+**Túnel em desenvolvimento (Dev Tunnels do VS Code)** — gratuito, já vem no
+VS Code e cada pessoa do time tem o seu:
+
+1. Suba o backend (`python manage.py runserver`, porta 8000).
+2. No VS Code, abra o painel **Ports** (`Ctrl+Shift+P` → "Ports: Focus on
+   Ports View") → **Forward a Port** → `8000`. Na primeira vez ele pede login
+   com uma conta GitHub ou Microsoft.
+3. Clique com o botão direito na porta → **Port Visibility** → **Public**
+   (sem isso o Mercado Livre e o navegador do vendedor caem numa tela de
+   login do túnel).
+4. Copie o **Forwarded Address** (algo como
+   `https://abc123xy-8000.brs.devtunnels.ms`) e monte o redirect:
+   `https://abc123xy-8000.brs.devtunnels.ms/api/v1/canais/mercado-livre/callback`.
+5. Coloque esse valor em `MERCADO_LIVRE_REDIRECT_URI` no seu `backend/.env`,
+   reinicie o backend e adicione a mesma URL à lista de URLs de
+   redirecionamento do app no DevCenter. O app aceita várias — fica uma por
+   pessoa, sem apagar as dos colegas.
+
+`config/settings/dev.py` já aceita qualquer host `*.devtunnels.ms`, então não
+precisa mexer em `ALLOWED_HOSTS`. O túnel só funciona com o VS Code aberto e
+a porta encaminhada. Na primeira visita o navegador mostra um aviso do Dev
+Tunnels — é só continuar, o `code` não se perde. Confira o endereço ao
+reabrir o projeto: se ele mudar (túnel apagado ou expirado por falta de
+uso), atualize o `.env` e o DevCenter.
+
+**Como funciona o fluxo:**
+
+1. O usuário autenticado clica em "Conectar Mercado Livre" (página **Canais**
+   no web) → o front chama `GET /api/v1/canais/mercado-livre/conectar`, que
+   devolve a URL de autorização do Mercado Livre e redireciona o navegador
+   pra lá (`apps.canais.services.gerar_url_autorizacao`).
+2. Essa URL carrega um `state` assinado (`django.core.signing`, não um id
+   cru) contendo o id do vendedor — é assim que o callback sabe quem iniciou
+   o fluxo, já que o redirect vem direto do domínio do Mercado Livre e não
+   carrega o JWT da nossa aplicação.
+3. O usuário autoriza no site do Mercado Livre, que redireciona o navegador
+   pra `MERCADO_LIVRE_REDIRECT_URI` com `?code=...&state=...`.
+4. `GET /api/v1/canais/mercado-livre/callback` (`AllowAny`, sem JWT — não tem
+   como exigir) valida o `state`, troca o `code` por
+   `access_token`/`refresh_token` (`POST /oauth/token` no Mercado Livre) e
+   salva em `MercadoLivreToken` via `update_or_create` (reconectar substitui
+   o token antigo). Depois redireciona o navegador de volta pro front:
+   `FRONTEND_URL/canais?mercado_livre=conectado` (ou `=erro`).
+5. Qualquer chamada futura à API do Mercado Livre usa
+   `apps.canais.services.chamar_api_mercado_livre(vendedor=..., caminho=...)`,
+   que por baixo dos panos chama `obter_token_valido(vendedor=...)` — essa
+   função confere `expires_at` (com 5 minutos de margem) e, se estiver perto
+   de expirar, renova sozinha via `grant_type=refresh_token` antes de montar
+   a requisição. Quem chama nunca lida com token manualmente.
+
+Os testes em `backend/apps/canais/tests/test_mercado_livre.py` mockam as
+chamadas HTTP ao Mercado Livre (`unittest.mock.patch` em cima de
+`requests.post`/`requests.request`) — diferente dos testes de `arquivos`, não
+faz sentido bater numa API OAuth de terceiro a cada `pytest`.

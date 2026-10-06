@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { CadastroPage } from '@/features/auth/CadastroPage'
 import { LoginPage } from '@/features/auth/LoginPage'
+import { PedidosTestePage } from '@/features/pedidos/PedidosTestePage'
 import { Canais } from '@/pages/Canais'
 import { Catalogo } from '@/pages/Catalogo'
 import { Configuracoes } from '@/pages/Configuracoes'
@@ -28,6 +29,7 @@ export function AppRoutes() {
           <Route path="/catalogo" element={<Catalogo />} />
           <Route path="/estoque" element={<Navigate replace to="/catalogo" />} />
           <Route path="/pedidos" element={<Pedidos />} />
+          <Route path="/pedidos-teste" element={<PedidosTestePage />} />
           <Route path="/fornecedores" element={<Fornecedores />} />
           <Route path="/financeiro" element={<Financeiro />} />
           <Route path="/canais" element={<Canais />} />

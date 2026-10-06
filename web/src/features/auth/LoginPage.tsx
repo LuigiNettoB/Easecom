@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import { Mail, Lock, Eye, EyeOff, Sparkles } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/shared/auth/AuthContext'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
@@ -38,42 +38,42 @@ export function LoginPage() {
   }
 
   return (
-  <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#062f3d] via-[#0a4a6e] to-[#3fae4e] p-4">
-  {/* Padrão decorativo de fundo: carrinhos de compras */}
-  <div className="pointer-events-none absolute inset-0 opacity-[0.15]">
-    <svg
-      className="h-full w-full"
-      xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="xMidYMid slice"
-    >
-      <defs>
-        <pattern id="carrinhos" width="140" height="140" patternUnits="userSpaceOnUse">
-          <g
-            stroke="#e9f0ea"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          >
-            {/* alça do carrinho */}
-            <path d="M20 25 H32" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#062f3d] via-[#0a4a6e] to-[#3fae4e] p-4">
+      {/* Padrão decorativo de fundo: carrinhos de compras */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.15]">
+        <svg
+          className="h-full w-full"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          <defs>
+            <pattern id="carrinhos" width="140" height="140" patternUnits="userSpaceOnUse">
+              <g
+                stroke="#e9f0ea"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              >
+                {/* alça do carrinho */}
+                <path d="M20 25 H32" />
 
-            {/* estrutura do carrinho */}
-            <path d="M32 25 L42 75 H105 L120 40 H36" />
+                {/* estrutura do carrinho */}
+                <path d="M32 25 L42 75 H105 L120 40 H36" />
 
-            {/* parte inferior / base */}
-            <path d="M42 75 H105" />
+                {/* parte inferior / base */}
+                <path d="M42 75 H105" />
 
-            {/* rodas */}
-            <circle cx="55" cy="91" r="6" />
-            <circle cx="96" cy="91" r="6" />
-          </g>
-        </pattern>
-      </defs>
+                {/* rodas */}
+                <circle cx="55" cy="91" r="6" />
+                <circle cx="96" cy="91" r="6" />
+              </g>
+            </pattern>
+          </defs>
 
-      <rect width="100%" height="100%" fill="url(#carrinhos)" />
-    </svg>
-  </div>
+          <rect width="100%" height="100%" fill="url(#carrinhos)" />
+        </svg>
+      </div>
       <Card className="relative w-full max-w-sm rounded-3xl border border-white/30 bg-black/30 shadow-2xl backdrop-blur-xl">
         <CardHeader className="pb-2">
           <img
@@ -133,10 +133,7 @@ export function LoginPage() {
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
               <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="text-sm text-emerald-300 hover:underline"
-                >
+                <button type="button" className="text-sm text-emerald-300 hover:underline">
                   Esqueceu a senha?
                 </button>
               </div>

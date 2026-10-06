@@ -185,11 +185,7 @@ export function Pedidos() {
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <p className="mr-2 text-sm font-medium text-[#00305c]">Status:</p>
-        <div
-          className="flex flex-wrap gap-2"
-          role="group"
-          aria-label="Filtrar pedidos por status"
-        >
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar pedidos por status">
           {FILTROS_STATUS.map((filtro) => (
             <button
               aria-pressed={filtroStatus === filtro}

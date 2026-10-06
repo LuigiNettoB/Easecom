@@ -136,7 +136,6 @@ export function Catalogo() {
   // garante que a câmera é desligada se o modal fechar com ela ainda ativa
   useEffect(() => {
     if (!modalAberto) pararCamera()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modalAberto])
 
   const termo = busca.trim().toLocaleLowerCase('pt-BR')
@@ -302,9 +301,7 @@ export function Catalogo() {
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-foreground">
-                          {produto.estoque} un.
-                        </span>
+                        <span className="font-medium text-foreground">{produto.estoque} un.</span>
                         <span
                           className={
                             estoqueBaixo
@@ -419,7 +416,9 @@ export function Catalogo() {
                   <Label htmlFor="sku">SKU</Label>
                   <Input
                     id="sku"
-                    onChange={(event) => setForm((atual) => ({ ...atual, sku: event.target.value }))}
+                    onChange={(event) =>
+                      setForm((atual) => ({ ...atual, sku: event.target.value }))
+                    }
                     required
                     value={form.sku}
                   />
@@ -443,7 +442,9 @@ export function Catalogo() {
                   <Input
                     id="preco"
                     inputMode="decimal"
-                    onChange={(event) => setForm((atual) => ({ ...atual, preco: event.target.value }))}
+                    onChange={(event) =>
+                      setForm((atual) => ({ ...atual, preco: event.target.value }))
+                    }
                     placeholder="0,00"
                     required
                     value={form.preco}
@@ -481,7 +482,6 @@ export function Catalogo() {
 
                 {cameraAtiva ? (
                   <div className="flex flex-col gap-2">
-                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                     <video
                       autoPlay
                       className="w-full rounded-md border border-border"

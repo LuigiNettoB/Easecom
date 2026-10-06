@@ -130,9 +130,7 @@ export function Financeiro() {
                         {lancamento.tipo}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-muted-foreground">
-                      {lancamento.canal ?? '—'}
-                    </td>
+                    <td className="px-5 py-3 text-muted-foreground">{lancamento.canal ?? '—'}</td>
                     <td
                       className={cn(
                         'px-5 py-3 text-right font-medium',
