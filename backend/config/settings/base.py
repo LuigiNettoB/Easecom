@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "apps.autenticacao",
     "apps.arquivos",
     "apps.canais",
+    "apps.pedidos",
 ]
 
 MIDDLEWARE = [
@@ -163,6 +164,7 @@ SPECTACULAR_SETTINGS = {
         {"name": "autenticacao", "description": "Cadastro, login e renovação de token"},
         {"name": "eu", "description": "Dados do usuário autenticado"},
         {"name": "arquivos", "description": "Upload e download de arquivos (Supabase Storage)"},
+        {"name": "pedidos", "description": "Pedidos e vendas de todos os canais conectados"},
         {
             "name": "canais",
             "description": "Dados simulados de canais de venda (fixture temporário)",

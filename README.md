@@ -142,7 +142,8 @@ backend/
     ├── contas/           Vendedor, Usuario, Perfil
     ├── autenticacao/     serializers/views/services de cadastro, login e refresh
     ├── arquivos/         upload/download de arquivos via Supabase Storage
-    └── canais/           integração OAuth real com o Mercado Livre (ver seção abaixo)
+    ├── canais/           integração OAuth real com o Mercado Livre (ver seção abaixo)
+    └── pedidos/          pedidos de todos os canais em formato único (ver seção abaixo)
 ```
 
 Views nunca contêm regra de negócio — a lógica de cada operação composta vive
@@ -244,6 +245,10 @@ entidade de negócio real existe ainda neste esqueleto).
 | GET    | `/api/v1/canais/mercado-livre/conectar` | Retorna a URL de autorização OAuth do Mercado Livre |
 | GET    | `/api/v1/canais/mercado-livre/callback` | Callback OAuth (chamado pelo Mercado Livre, não pelo front) |
 | GET    | `/api/v1/canais/mercado-livre/status`   | Diz se o vendedor já conectou uma conta do Mercado Livre |
+| POST   | `/api/v1/pedidos/sincronizar` | Busca os pedidos nos canais conectados e atualiza a cópia do hub |
+| GET    | `/api/v1/pedidos`             | Lista os pedidos do vendedor (filtros: `canal`, `status`, `entregue`, `realizado_de`, `realizado_ate`) |
+| GET    | `/api/v1/pedidos/<id>`        | Detalhe de um pedido com seus itens |
+| GET    | `/api/v1/vendas/resumo`       | Totais de venda somando todos os canais |
 
 Todo erro de API segue o mesmo formato:
 
@@ -303,6 +308,30 @@ No CI (`.github/workflows/ci.yml`), essas credenciais vêm de *secrets* do
 repositório — configure em **Settings → Secrets and variables → Actions**:
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_STORAGE_BUCKET`. Sem
 isso, o job `pytest` do CI falha nos testes de `arquivos`.
+
+## Pedidos de todos os canais
+
+O front nunca fala com um marketplace: ele consome `/api/v1/pedidos` e
+`/api/v1/vendas/resumo`, que devolvem os pedidos num formato único do hub
+(`apps.pedidos.models.Pedido` e `ItemPedido`), seja qual for o canal de origem.
+
+- **Adaptadores** (`apps/pedidos/adaptadores/`): um módulo por canal, todos com
+  o mesmo contrato (`CANAL`, `esta_conectado`, `buscar_pedidos`). O adaptador
+  traduz o pedido do marketplace para `PedidoExterno`, incluindo o status
+  (`PENDENTE`, `PAGO`, `CANCELADO`, `OUTRO`; o valor original fica em
+  `status_no_canal`). Para integrar outro marketplace, crie o módulo dele e
+  acrescente em `ADAPTADORES` — services, rotas e front não mudam.
+- **Sincronização** (`apps.pedidos.services.sincronizar_pedidos`): copia os
+  pedidos dos canais conectados para o banco. É manual por enquanto —
+  `POST /api/v1/pedidos/sincronizar` (vendedor logado) ou
+  `python manage.py sincronizar_pedidos [--vendedor "Nome"]` (todos). Rodar de
+  novo atualiza os pedidos existentes, sem duplicar.
+- As rotas de leitura só consultam o banco; nenhuma delas chama o marketplace.
+
+Ao criar uma migração nova, rode `python manage.py migrate` **antes** do
+`pytest`: os testes usam o mesmo banco com `search_path=test,public`, então um
+`pytest` rodado primeiro cria as tabelas novas no schema `test` e marca a
+migração como aplicada, e o ambiente de desenvolvimento fica sem as tabelas.
 
 ## Integração com o Mercado Livre (OAuth)
 
