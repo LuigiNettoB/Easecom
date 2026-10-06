@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-
+import { Mail, Lock, Eye, EyeOff, Sparkles } from 'lucide-react'
 import { useAuth } from '@/shared/auth/AuthContext'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
@@ -16,7 +16,7 @@ export function LoginPage() {
   const { entrar } = useAuth()
   const navigate = useNavigate()
   const [erro, setErro] = useState<string | null>(null)
-
+  const [mostrarSenha, setMostrarSenha] = useState(false)
   const {
     register,
     handleSubmit,
@@ -38,39 +38,124 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Entrar</CardTitle>
-          <CardDescription>Acesse o HubMulticanal com seu e-mail e senha.</CardDescription>
+  <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[#062f3d] via-[#0a4a6e] to-[#3fae4e] p-4">
+  {/* Padrão decorativo de fundo: carrinhos de compras */}
+  <div className="pointer-events-none absolute inset-0 opacity-[0.15]">
+    <svg
+      className="h-full w-full"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <defs>
+        <pattern id="carrinhos" width="140" height="140" patternUnits="userSpaceOnUse">
+          <g
+            stroke="#e9f0ea"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          >
+            {/* alça do carrinho */}
+            <path d="M20 25 H32" />
+
+            {/* estrutura do carrinho */}
+            <path d="M32 25 L42 75 H105 L120 40 H36" />
+
+            {/* parte inferior / base */}
+            <path d="M42 75 H105" />
+
+            {/* rodas */}
+            <circle cx="55" cy="91" r="6" />
+            <circle cx="96" cy="91" r="6" />
+          </g>
+        </pattern>
+      </defs>
+
+      <rect width="100%" height="100%" fill="url(#carrinhos)" />
+    </svg>
+  </div>
+      <Card className="relative w-full max-w-sm rounded-3xl border border-white/30 bg-black/30 shadow-2xl backdrop-blur-xl">
+        <CardHeader className="pb-2">
+          <img
+            src="../public/logo.png"
+            alt="Logo EaseCom"
+            className="mx-auto -mb-10 h-90 w-90 object-contain"
+          />
+
+          <CardTitle className="text-2xl font-bold text-white">Entrar</CardTitle>
+          <CardDescription className="text-sm text-white">
+            Acesse o EaseCom com seu e-mail e senha.
+          </CardDescription>
         </CardHeader>
+
         <CardContent>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit(aoSubmeter)} noValidate>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">E-mail</Label>
-              <Input id="email" type="email" autoComplete="email" {...register('email')} />
+              <Label htmlFor="email" className="text-white">
+                E-mail
+              </Label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  className="h-14 rounded-2xl border-white/40 bg-white/60 pl-10 text-white placeholder:text-slate-500"
+                  {...register('email')}
+                />
+              </div>
               {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
+
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                {...register('password')}
-              />
+              <Label htmlFor="password" className="text-white">
+                Senha
+              </Label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Input
+                  id="password"
+                  type={mostrarSenha ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  className="h-14 rounded-2xl border-white/40 bg-white/60 pl-10 pr-10 text-white placeholder:text-slate-500"
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarSenha((valor) => !valor)}
+                  aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                >
+                  {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  className="text-sm text-emerald-300 hover:underline"
+                >
+                  Esqueceu a senha?
+                </button>
+              </div>
             </div>
+
             {erro && <p className="text-sm text-destructive">{erro}</p>}
-            <Button type="submit" disabled={isSubmitting}>
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="h-14 rounded-full bg-gradient-to-r from-[#00305c] to-[#005DAA] text-base font-bold text-white shadow-lg hover:opacity-90"
+            >
               {isSubmitting ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
+
+          <p className="mt-4 flex items-center justify-center gap-1 text-center text-sm text-emerald-300">
             Ainda não tem conta?{' '}
-            <Link to="/cadastro" className="font-medium text-primary underline">
+            <Link to="/cadastro" className="font-bold hover:underline">
               Cadastre-se
             </Link>
           </p>

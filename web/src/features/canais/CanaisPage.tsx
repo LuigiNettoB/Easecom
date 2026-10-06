@@ -73,6 +73,12 @@ export function CanaisPage() {
               Não foi possível conectar sua conta do Mercado Livre. Tente novamente.
             </p>
           )}
+          {status === 'conta_em_uso' && (
+            <p className="text-sm text-destructive">
+              Esta conta do Mercado Livre já está conectada a outro vendedor. Saia dela no site do
+              Mercado Livre e tente novamente com a conta correta.
+            </p>
+          )}
           {erro && <p className="text-sm text-destructive">{erro}</p>}
           <Button
             onClick={conectarMercadoLivre}

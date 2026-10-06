@@ -125,6 +125,21 @@ def _trocar_por_token(dados_requisicao: dict) -> dict:
 
 
 def _salvar_tokens(*, vendedor: Vendedor, dados: dict) -> MercadoLivreToken:
+    # `ml_user_id` é único: a mesma conta do Mercado Livre não pode ficar
+    # ligada a dois vendedores (acontece quando o navegador já está logado no
+    # Mercado Livre com uma conta que outro vendedor conectou).
+    conta_em_uso = (
+        MercadoLivreToken.objects_todos.filter(ml_user_id=dados["user_id"])
+        .exclude(vendedor=vendedor)
+        .exists()
+    )
+    if conta_em_uso:
+        raise ErroDeNegocio(
+            mensagem="Esta conta do Mercado Livre já está conectada a outro vendedor.",
+            codigo="ml_conta_em_uso",
+            status_code=409,
+        )
+
     expira_em = timezone.now() + timedelta(seconds=dados["expires_in"])
     token, _ = MercadoLivreToken.objects_todos.update_or_create(
         vendedor=vendedor,

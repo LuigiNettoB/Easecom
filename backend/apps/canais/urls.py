@@ -3,10 +3,12 @@ from django.urls import path
 from apps.canais.views import (
     MercadoLivreCallbackView,
     MercadoLivreConectarView,
+    MercadoLivreResumoView,
     MercadoLivreStatusView,
 )
 
 urlpatterns = [
+    path("canais/mercado-livre/resumo", MercadoLivreResumoView.as_view(), name="canais-ml-resumo"),
     path(
         "canais/mercado-livre/conectar",
         MercadoLivreConectarView.as_view(),

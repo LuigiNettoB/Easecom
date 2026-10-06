@@ -192,6 +192,24 @@ class TestEndpointsHttp:
         resposta = client.get("/api/v1/canais/mercado-livre/conectar")
         assert resposta.status_code == 401
 
+    def test_resumo_simulado_retorna_dados_do_painel(self, client):
+        usuario = UsuarioFactory()
+        login = client.post(
+            "/api/v1/auth/login",
+            {"email": usuario.email, "password": SENHA_PADRAO},
+            format="json",
+        )
+
+        resposta = client.get(
+            "/api/v1/canais/mercado-livre/resumo",
+            HTTP_AUTHORIZATION=f"Bearer {login.data['access']}",
+        )
+
+        assert resposta.status_code == 200
+        assert resposta.data["totais"]["anuncios"] > 0
+        assert len(resposta.data["top_produtos"]) > 0
+        assert len(resposta.data["pedidos_recentes"]) > 0
+
     def test_status_sem_conexao_retorna_falso(self, client):
         usuario = UsuarioFactory(email="status-desconectado@teste.com")
         access = self._autenticar(client, usuario)
@@ -239,6 +257,33 @@ class TestEndpointsHttp:
 
         assert resposta.status_code == 302
         assert resposta.url == "http://localhost:5173/canais?mercado_livre=conectado"
+
+    def test_callback_com_conta_ml_de_outro_vendedor_redireciona_com_conta_em_uso(
+        self, client, settings
+    ):
+        settings.FRONTEND_URL = "http://localhost:5173"
+        MercadoLivreToken.objects_todos.create(
+            vendedor=VendedorFactory(),
+            ml_user_id=DADOS_TOKEN_ML["user_id"],
+            access_token="token-do-outro",
+            refresh_token="refresh-do-outro",
+            expires_at=timezone.now() + timedelta(hours=6),
+        )
+        vendedor = VendedorFactory()
+        state = signing.dumps(
+            {"vendedor_id": str(vendedor.id), "code_verifier": "verifier-de-teste"}, salt=SALT_STATE
+        )
+
+        with patch("apps.canais.services.requests.post") as post_mock:
+            post_mock.return_value = _resposta_mock(DADOS_TOKEN_ML)
+            resposta = client.get(
+                "/api/v1/canais/mercado-livre/callback",
+                {"code": "um-code", "state": state},
+            )
+
+        assert resposta.status_code == 302
+        assert resposta.url == "http://localhost:5173/canais?mercado_livre=conta_em_uso"
+        assert not MercadoLivreToken.objects_todos.filter(vendedor=vendedor).exists()
 
     def test_callback_com_erro_do_mercado_livre_redireciona_com_erro(self, client, settings):
         settings.FRONTEND_URL = "http://localhost:5173"

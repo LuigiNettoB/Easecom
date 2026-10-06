@@ -76,7 +76,7 @@ export function ConfiguracoesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Configurações</h1>
+      <h1 className="text-2xl font-semibold text-[#00305c]">Configurações</h1>
 
       <Card>
         <CardContent className="p-0">
@@ -158,26 +158,26 @@ export function ConfiguracoesPage() {
         <CardContent className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <div>
             <p className="text-muted-foreground">Nome</p>
-            <p className="font-medium">{usuario?.nome}</p>
+            <p className="font-medium text-foreground">{usuario?.nome}</p>
           </div>
           <div>
             <p className="text-muted-foreground">E-mail</p>
-            <p className="font-medium">{usuario?.email}</p>
+            <p className="font-medium text-foreground">{usuario?.email}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Perfil</p>
-            <p className="font-medium">{usuario?.perfil}</p>
+            <p className="font-medium text-foreground">{usuario?.perfil}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Vendedor</p>
-            <p className="font-medium">{usuario?.vendedor.nome}</p>
+            <p className="font-medium text-foreground">{usuario?.vendedor.nome}</p>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Trocar senha</CardTitle>
+      <Card className="shadow-sm">
+        <CardHeader className="border-l-4 border-l-[#85FA51]">
+          <CardTitle className="text-[#00305c]">Trocar senha</CardTitle>
           <CardDescription>Informe a senha atual e a nova senha.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -192,6 +192,7 @@ export function ConfiguracoesPage() {
                 id="senha_atual"
                 type="password"
                 autoComplete="current-password"
+                className="focus-visible:ring-[#005DAA]"
                 {...register('senha_atual')}
               />
               {errors.senha_atual && (
@@ -204,6 +205,7 @@ export function ConfiguracoesPage() {
                 id="senha_nova"
                 type="password"
                 autoComplete="new-password"
+                className="focus-visible:ring-[#005DAA]"
                 {...register('senha_nova')}
               />
               {errors.senha_nova && (
@@ -216,6 +218,7 @@ export function ConfiguracoesPage() {
                 id="confirmar_senha_nova"
                 type="password"
                 autoComplete="new-password"
+                className="focus-visible:ring-[#005DAA]"
                 {...register('confirmar_senha_nova')}
               />
               {errors.confirmar_senha_nova && (
@@ -223,8 +226,14 @@ export function ConfiguracoesPage() {
               )}
             </div>
             {erro && <p className="text-sm text-destructive">{erro}</p>}
-            {sucesso && <p className="text-sm text-primary">Senha alterada com sucesso.</p>}
-            <Button type="submit" disabled={isSubmitting}>
+            {sucesso && (
+              <p className="text-sm font-medium text-[#1f5c0a]">Senha alterada com sucesso.</p>
+            )}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-[#005DAA] text-white shadow-sm transition-colors hover:bg-[#00497f]"
+            >
               {isSubmitting ? 'Salvando...' : 'Salvar nova senha'}
             </Button>
           </form>

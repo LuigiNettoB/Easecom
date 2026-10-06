@@ -5,12 +5,26 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.canais.resumo_simulado import obter_resumo_mercado_livre
 from apps.canais.services import (
     esta_conectado_ao_mercado_livre,
     gerar_url_autorizacao,
     processar_callback_oauth,
 )
 from apps.core.exceptions import ErroDeNegocio
+
+
+@extend_schema(tags=["canais"])
+class MercadoLivreResumoView(APIView):
+    """Resumo simulado do Mercado Livre a partir de um fixture estático.
+
+    Alimenta o painel da Home do front — não lê nem grava nada no banco e
+    ainda não usa a conta conectada do vendedor.
+    """
+
+    @extend_schema(responses={200: dict})
+    def get(self, request):
+        return Response(obter_resumo_mercado_livre())
 
 
 @extend_schema(tags=["canais"])
@@ -61,7 +75,8 @@ class MercadoLivreCallbackView(APIView):
 
         try:
             processar_callback_oauth(code=code, state=state)
-        except ErroDeNegocio:
-            return redirect(f"{settings.FRONTEND_URL}/canais?mercado_livre=erro")
+        except ErroDeNegocio as erro:
+            status = "conta_em_uso" if erro.codigo == "ml_conta_em_uso" else "erro"
+            return redirect(f"{settings.FRONTEND_URL}/canais?mercado_livre={status}")
 
         return redirect(f"{settings.FRONTEND_URL}/canais?mercado_livre=conectado")
