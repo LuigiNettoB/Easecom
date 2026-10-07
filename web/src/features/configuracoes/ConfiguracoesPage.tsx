@@ -113,7 +113,7 @@ export function ConfiguracoesPage() {
             />
           </button>
 
-          <div className="flex items-center gap-4 px-6 pb-6 pt-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 px-4 sm:px-6 pb-6 pt-4">
             <button
               type="button"
               onClick={() => inputPerfilRef.current?.click()}
@@ -182,7 +182,7 @@ export function ConfiguracoesPage() {
         </CardHeader>
         <CardContent>
           <form
-            className="flex max-w-sm flex-col gap-4"
+            className="flex w-full sm:max-w-sm flex-col gap-4"
             onSubmit={handleSubmit(aoSubmeter)}
             noValidate
           >
@@ -232,7 +232,7 @@ export function ConfiguracoesPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[#005DAA] text-white shadow-sm transition-colors hover:bg-[#00497f]"
+              className="w-full sm:w-auto bg-[#005DAA] text-white shadow-sm transition-colors hover:bg-[#00497f]"
             >
               {isSubmitting ? 'Salvando...' : 'Salvar nova senha'}
             </Button>
