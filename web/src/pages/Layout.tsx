@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 
 import { useAuth } from '@/shared/auth/AuthContext'
@@ -13,6 +14,8 @@ import {
   CurrencyDollarIcon,
   LinkIcon,
   Cog6ToothIcon,
+  Bars3Icon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 
 const ITENS_MENU = [
@@ -31,6 +34,7 @@ const ITENS_MENU = [
 
 export function Layout() {
   const { usuario, sair } = useAuth()
+  const [menuAberto, setMenuAberto] = useState(false)
 
   return (
     <div className="flex min-h-screen">
@@ -61,13 +65,59 @@ export function Layout() {
         </nav>
       </aside>
 
+      {menuAberto && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-muted p-4 md:hidden">
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-lg font-semibold">Easecom</p>
+            <Button variant="ghost" size="sm" onClick={() => setMenuAberto(false)}>
+              <XMarkIcon className="h-6 w-6" />
+            </Button>
+          </div>
+
+          <nav className="flex flex-col gap-2">
+            {ITENS_MENU.map((item) => {
+              const Icone = item.icone
+
+              return (
+                <NavLink
+                  key={item.rota}
+                  to={item.rota}
+                  end={item.rota === '/'}
+                  onClick={() => setMenuAberto(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 rounded-md px-3 py-3 text-base font-medium hover:bg-green-300',
+                      isActive && 'bg-green-500 text-primary',
+                    )
+                  }
+                >
+                  <Icone className="h-6 w-6 shrink-0" />
+                  <span>{item.rotulo}</span>
+                </NavLink>
+              )
+            })}
+          </nav>
+        </div>
+      )}
+
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border px-6 py-4">
-          <div>
-            <p className="text-sm font-medium">{usuario?.nome}</p>
-            <p className="text-xs text-muted-foreground">
-              {usuario?.vendedor.nome}
-            </p>
+        <header className="flex items-center justify-between border-b border-border px-4 md:px-6 py-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setMenuAberto(true)}
+            >
+              <Bars3Icon className="h-5 w-5" />
+            </Button>
+
+            <div>
+              <p className="text-sm font-medium">{usuario?.nome}</p>
+              <p className="text-xs text-muted-foreground">
+                {usuario?.vendedor.nome}
+              </p>
+            </div>
           </div>
 
           <Button variant="outline" size="sm" onClick={sair}>
