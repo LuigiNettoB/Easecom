@@ -149,7 +149,7 @@ export function Pedidos() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
         {indicadores.map((indicador) => {
           const Icone = indicador.icone
           return (
@@ -157,9 +157,9 @@ export function Pedidos() {
               <CardContent className="flex items-center justify-between p-5">
                 <div>
                   <p className="text-sm text-muted-foreground">{indicador.rotulo}</p>
-                  <p className="mt-1 text-3xl font-semibold text-[#00305c]">{indicador.valor}</p>
+                  <p className="mt-1 text-2xl sm:text-3xl font-semibold text-[#00305c]">{indicador.valor}</p>
                 </div>
-                <Icone className={cn('h-9 w-9', indicador.corIcone)} />
+                <Icone className={cn('h-8 w-8 sm:h-9 sm:w-9 shrink-0', indicador.corIcone)} />
               </CardContent>
             </Card>
           )
