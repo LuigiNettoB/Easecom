@@ -32,6 +32,10 @@ INSTALLED_APPS = [
     "apps.arquivos",
     "apps.canais",
     "apps.pedidos",
+    "apps.produtos",
+    "apps.fornecedores",
+    "apps.financeiro",
+    "apps.notificacoes",
 ]
 
 MIDDLEWARE = [
@@ -168,6 +172,22 @@ SPECTACULAR_SETTINGS = {
         {
             "name": "canais",
             "description": "Dados simulados de canais de venda (fixture temporário)",
+        },
+        {
+            "name": "produtos",
+            "description": "Catálogo e estoque dos produtos do vendedor",
+        },
+        {
+            "name": "fornecedores",
+            "description": "Fornecedores que abastecem os produtos do vendedor",
+        },
+        {
+            "name": "financeiro",
+            "description": "Receitas, despesas, taxas e margem do vendedor",
+        },
+        {
+            "name": "notificacoes",
+            "description": "Avisos e alertas para o vendedor",
         },
     ],
 }

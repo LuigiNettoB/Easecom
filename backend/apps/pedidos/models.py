@@ -5,6 +5,9 @@ from apps.core.models import ModeloBase, ModeloMultiTenant
 
 class Canal(models.TextChoices):
     MERCADO_LIVRE = "MERCADO_LIVRE", "Mercado Livre"
+    SHOPEE = "SHOPEE", "Shopee"
+    AMAZON = "AMAZON", "Amazon"
+    MAGALU = "MAGALU", "Magalu"
 
 
 class StatusPedido(models.TextChoices):
