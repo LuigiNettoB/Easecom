@@ -101,7 +101,8 @@ export function Financeiro() {
         </Card>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
+      {/* VISÃO DESKTOP: TABELA TRADICIONAL */}
+      <div className="hidden md:block overflow-hidden rounded-lg border border-border bg-background shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-left text-sm">
             <thead className="border-b border-border bg-[#005DAA]/5 text-xs font-semibold uppercase tracking-wide text-[#005DAA]">
@@ -148,6 +149,55 @@ export function Financeiro() {
             </tbody>
           </table>
         </div>
+        {LANCAMENTOS.length === 0 && (
+          <p className="px-5 py-10 text-center text-sm text-muted-foreground">
+            Nenhum lançamento encontrado.
+          </p>
+        )}
+      </div>
+
+      {/* VISÃO MOBILE: CARDS INDIVIDUAIS */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {LANCAMENTOS.map((lancamento) => {
+          const positivo = lancamento.tipo === 'Receita'
+          return (
+            <div
+              key={lancamento.id}
+              className="flex flex-col gap-2 rounded-lg border border-border bg-background p-4 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-medium text-foreground text-sm">{lancamento.descricao}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {lancamento.canal ?? 'Sem canal associado'}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    'rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0',
+                    ESTILOS_TIPO[lancamento.tipo],
+                  )}
+                >
+                  {lancamento.tipo}
+                </span>
+              </div>
+
+              <div className="border-t border-border pt-2 flex justify-between items-center text-sm">
+                <span className="text-xs text-muted-foreground">Valor</span>
+                <span
+                  className={cn(
+                    'font-semibold',
+                    positivo ? 'text-[#1f5c0a]' : 'text-red-700',
+                  )}
+                >
+                  {positivo ? '+ ' : '− '}
+                  {moeda.format(lancamento.valor)}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+
         {LANCAMENTOS.length === 0 && (
           <p className="px-5 py-10 text-center text-sm text-muted-foreground">
             Nenhum lançamento encontrado.
