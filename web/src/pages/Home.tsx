@@ -70,7 +70,7 @@ export function Home() {
               <Card className="border-0 bg-[#005DAA] shadow-none">
                 <CardContent className="p-4">
                   <p className="text-sm text-[#B5D4F4]">Receita total</p>
-                  <p className="text-2xl font-semibold text-white">
+                  <p className="text-2xl font-semibold text-white truncate">
                     {formatarMoeda(resumo.receita_total)}
                   </p>
                 </CardContent>
@@ -87,10 +87,10 @@ export function Home() {
                 {resumo.top_produtos.map((produto) => (
                   <div
                     key={produto.id}
-                    className="flex items-center justify-between border-b border-border pb-2 text-sm last:border-b-0 last:pb-0"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-border pb-2 text-sm last:border-b-0 last:pb-0"
                   >
                     <span>{produto.title}</span>
-                    <span className="font-medium text-[#3B6D11]">
+                    <span className="font-medium text-[#3B6D11] whitespace-nowrap self-end sm:self-auto">
                       {produto.sold_quantity} vendidos
                     </span>
                   </div>
@@ -106,9 +106,9 @@ export function Home() {
                 {resumo.pedidos_recentes.map((pedido) => (
                   <div
                     key={pedido.id}
-                    className="flex items-center justify-between border-b border-border pb-2 text-sm last:border-b-0 last:pb-0"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-border pb-2 text-sm last:border-b-0 last:pb-0"
                   >
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 flex-wrap">
                       {pedido.buyer_nickname}
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${corStatus(pedido.status)}`}
@@ -116,7 +116,7 @@ export function Home() {
                         {pedido.status}
                       </span>
                     </span>
-                    <span className="font-medium">{formatarMoeda(pedido.total_amount)}</span>
+                    <span className="font-medium self-end sm:self-auto">{formatarMoeda(pedido.total_amount)}</span>
                   </div>
                 ))}
               </CardContent>
