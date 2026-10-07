@@ -48,7 +48,7 @@ export function Home() {
             <p className="mb-2 text-sm font-medium text-[#005DAA]">
               Mercado Livre — {resumo.vendedor_nickname} (dados simulados, teste temporário)
             </p>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
               <Card className="border-l-4 border-l-[#85FA51] border-y-10 border-r-10 shadow-none">
                 <CardContent className="p-4">
                   <p className="text-sm text-muted-foreground">Anúncios</p>
