@@ -248,7 +248,7 @@ export function Catalogo() {
             />
           </div>
           <Button
-            className="flex items-center gap-2 whitespace-nowrap bg-[#005DAA] text-white hover:bg-[#00497f]"
+            className="flex w-full sm:w-auto items-center justify-center gap-2 whitespace-nowrap bg-[#005DAA] text-white hover:bg-[#00497f]"
             onClick={abrirModal}
             type="button"
           >
