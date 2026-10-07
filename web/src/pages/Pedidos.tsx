@@ -192,7 +192,7 @@ export function Pedidos() {
         >
           {FILTROS_STATUS.map((filtro) => (
             <button
-              aria-pressed={filtroStatus === filtro}
+              aria-pressed={filtroCanal === filtro}
               className={estiloFiltro(filtroStatus === filtro)}
               key={filtro}
               onClick={() => setFiltroStatus(filtro)}
@@ -204,7 +204,8 @@ export function Pedidos() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
+      {/* VISÃO DESKTOP: TABELA TRADICIONAL */}
+      <div className="hidden md:block overflow-hidden rounded-lg border border-border bg-background shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="border-b border-border bg-[#005DAA]/5 text-xs font-semibold uppercase tracking-wide text-[#005DAA]">
@@ -242,6 +243,45 @@ export function Pedidos() {
             </tbody>
           </table>
         </div>
+        {pedidosFiltrados.length === 0 && (
+          <p className="px-5 py-10 text-center text-sm text-muted-foreground">
+            Nenhum pedido encontrado para este filtro.
+          </p>
+        )}
+      </div>
+
+      {/* VISÃO MOBILE: CARDS INDIVIDUAIS */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {pedidosFiltrados.map((pedido) => (
+          <div
+            key={pedido.id}
+            className="flex flex-col gap-3 rounded-lg border border-border bg-background p-4 shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs font-semibold text-[#00305c]">{pedido.id}</span>
+              <span
+                className={cn(
+                  'rounded-full px-2.5 py-0.5 text-xs font-medium',
+                  ESTILOS_STATUS[pedido.status],
+                )}
+              >
+                {pedido.status}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <div>
+                <p className="font-medium text-foreground">{pedido.cliente}</p>
+                <p className="text-xs text-muted-foreground">{pedido.canal}</p>
+              </div>
+              <div className="text-right">
+                <p className="font-semibold text-[#00305c]">{moeda.format(pedido.valor)}</p>
+                <p className="text-xs text-muted-foreground">{pedido.data}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+
         {pedidosFiltrados.length === 0 && (
           <p className="px-5 py-10 text-center text-sm text-muted-foreground">
             Nenhum pedido encontrado para este filtro.
