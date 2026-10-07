@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import axios from 'axios'
+import { Link } from 'react-router-dom'
 import {
+  ArrowPathIcon,
+  ArrowTopRightOnSquareIcon,
   ArrowUpTrayIcon,
   CameraIcon,
   MagnifyingGlassIcon,
@@ -7,6 +12,8 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 
+import { api } from '@/shared/api/client'
+import type { AnuncioMercadoLivre, ErroApi } from '@/shared/api/types'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
 import { Label } from '@/shared/ui/Label'
@@ -21,60 +28,39 @@ type Produto = {
   estoque: number
   canais: string[]
   foto: string
+  link?: string
+  status?: string
 }
 
-const PRODUTOS_INICIAIS: Produto[] = [
-  {
-    id: 'MLB1006547759',
-    nome: 'Camiseta Básica Algodão Preta',
-    sku: 'CAM-PRE-ALG-01',
-    categoria: 'Moda',
-    preco: 129.9,
-    estoque: 58,
-    canais: ['Mercado Livre', 'Shopee'],
-    foto: 'https://http2.mlstatic.com/D_547759-I.jpg',
-  },
-  {
-    id: 'MLB1006547760',
-    nome: 'Fone de Ouvido Bluetooth Sem Fio 5.3',
-    sku: 'FON-BT-53-01',
-    categoria: 'Eletrônicos',
-    preco: 189,
-    estoque: 142,
-    canais: ['Mercado Livre', 'Amazon'],
-    foto: 'https://http2.mlstatic.com/D_547760-I.jpg',
-  },
-  {
-    id: 'MLB1006547761',
-    nome: 'Garrafa Térmica Inox 750 ml',
-    sku: 'GAR-INOX-750',
-    categoria: 'Casa e cozinha',
-    preco: 79.9,
-    estoque: 3,
+// Status do anúncio no Mercado Livre que merecem destaque (o "active" não precisa).
+const STATUS_ANUNCIO: Record<string, string> = {
+  under_review: 'Em revisão',
+  paused: 'Pausado',
+  closed: 'Finalizado',
+  inactive: 'Inativo',
+}
+
+function anuncioParaProduto(anuncio: AnuncioMercadoLivre): Produto {
+  return {
+    id: anuncio.id,
+    nome: anuncio.titulo,
+    sku: anuncio.sku,
+    categoria: anuncio.categoria,
+    preco: anuncio.preco,
+    estoque: anuncio.estoque,
     canais: ['Mercado Livre'],
-    foto: 'https://http2.mlstatic.com/D_547761-I.jpg',
-  },
-  {
-    id: 'MLB1006547762',
-    nome: 'Teclado Mecânico Gamer 87 Teclas RGB',
-    sku: 'TEC-GAM-87-RGB',
-    categoria: 'Eletrônicos',
-    preco: 349,
-    estoque: 27,
-    canais: ['Mercado Livre', 'Amazon', 'Shopee'],
-    foto: 'https://http2.mlstatic.com/D_547762-I.jpg',
-  },
-  {
-    id: 'MLB1006547763',
-    nome: 'Mochila Couro Sintético para Notebook 15',
-    sku: 'MOC-COURO-15',
-    categoria: 'Bolsas e malas',
-    preco: 219.9,
-    estoque: 6,
-    canais: ['Mercado Livre', 'Shopee'],
-    foto: 'https://http2.mlstatic.com/D_547763-I.jpg',
-  },
-]
+    foto: anuncio.foto,
+    link: anuncio.link,
+    status: anuncio.status,
+  }
+}
+
+async function buscarAnunciosMercadoLivre() {
+  const { data } = await api.get<{ anuncios: AnuncioMercadoLivre[] }>(
+    '/canais/mercado-livre/anuncios',
+  )
+  return data.anuncios.map(anuncioParaProduto)
+}
 
 const CANAIS_DISPONIVEIS = ['Mercado Livre', 'Shopee', 'Amazon', 'Magalu']
 
@@ -109,7 +95,16 @@ const FORM_VAZIO: NovoProdutoForm = {
 }
 
 export function Catalogo() {
-  const [produtos, setProdutos] = useState<Produto[]>(PRODUTOS_INICIAIS)
+  const anuncios = useQuery({
+    queryKey: ['canais', 'mercado-livre', 'anuncios'],
+    queryFn: buscarAnunciosMercadoLivre,
+  })
+  // produtos cadastrados pelo formulário ainda vivem só no navegador
+  const [produtosCadastrados, setProdutosCadastrados] = useState<Produto[]>([])
+  const produtos = [...produtosCadastrados, ...(anuncios.data ?? [])]
+  const codigoErro = axios.isAxiosError<ErroApi>(anuncios.error)
+    ? anuncios.error.response?.data.codigo
+    : undefined
   const [busca, setBusca] = useState('')
   const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(null)
 
@@ -223,7 +218,7 @@ export function Catalogo() {
       foto: form.foto || FOTO_PADRAO,
     }
 
-    setProdutos((atual) => [novoProduto, ...atual])
+    setProdutosCadastrados((atual) => [novoProduto, ...atual])
     fecharModal()
   }
 
@@ -235,6 +230,23 @@ export function Catalogo() {
           <p className="mt-1 text-sm text-muted-foreground">
             Visualize seus produtos, o estoque disponível e os canais em que estão anunciados.
           </p>
+          {anuncios.isSuccess && (
+            <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-[#85FA51]" />
+              {anuncios.data.length} anúncios sincronizados do Mercado Livre
+              <button
+                aria-label="Atualizar anúncios do Mercado Livre"
+                className="rounded p-1 text-[#005DAA] hover:bg-[#005DAA]/10 disabled:opacity-50"
+                disabled={anuncios.isFetching}
+                onClick={() => void anuncios.refetch()}
+                type="button"
+              >
+                <ArrowPathIcon
+                  className={anuncios.isFetching ? 'h-3.5 w-3.5 animate-spin' : 'h-3.5 w-3.5'}
+                />
+              </button>
+            </p>
+          )}
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <div className="relative w-full sm:w-72">
@@ -292,7 +304,27 @@ export function Catalogo() {
                         />
                       </button>
                     </td>
-                    <td className="px-5 py-3 font-medium text-foreground">{produto.nome}</td>
+                    <td className="px-5 py-3 font-medium text-foreground">
+                      {produto.link ? (
+                        <a
+                          className="inline-flex items-start gap-1 hover:text-[#005DAA] hover:underline"
+                          href={produto.link}
+                          rel="noreferrer"
+                          target="_blank"
+                          title="Ver anúncio no Mercado Livre"
+                        >
+                          {produto.nome}
+                          <ArrowTopRightOnSquareIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        </a>
+                      ) : (
+                        produto.nome
+                      )}
+                      {produto.status && STATUS_ANUNCIO[produto.status] && (
+                        <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                          {STATUS_ANUNCIO[produto.status]}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-5 py-3 font-mono text-xs text-muted-foreground">
                       {produto.sku}
                     </td>
@@ -302,9 +334,7 @@ export function Catalogo() {
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-foreground">
-                          {produto.estoque} un.
-                        </span>
+                        <span className="font-medium text-foreground">{produto.estoque} un.</span>
                         <span
                           className={
                             estoqueBaixo
@@ -337,7 +367,27 @@ export function Catalogo() {
             </tbody>
           </table>
         </div>
-        {produtosFiltrados.length === 0 && (
+        {anuncios.isPending && (
+          <p className="px-5 py-10 text-center text-sm text-muted-foreground">
+            Carregando anúncios do Mercado Livre...
+          </p>
+        )}
+        {anuncios.isError && (
+          <p className="px-5 py-10 text-center text-sm text-muted-foreground">
+            {codigoErro === 'ml_nao_conectado' ? (
+              <>
+                Conecte sua conta do Mercado Livre em{' '}
+                <Link className="font-medium text-[#005DAA] hover:underline" to="/canais">
+                  Canais
+                </Link>{' '}
+                para ver seus anúncios aqui.
+              </>
+            ) : (
+              'Não foi possível carregar os anúncios do Mercado Livre. Tente novamente.'
+            )}
+          </p>
+        )}
+        {!anuncios.isPending && !anuncios.isError && produtosFiltrados.length === 0 && (
           <p className="px-5 py-10 text-center text-sm text-muted-foreground">
             Nenhum produto encontrado.
           </p>
@@ -419,7 +469,9 @@ export function Catalogo() {
                   <Label htmlFor="sku">SKU</Label>
                   <Input
                     id="sku"
-                    onChange={(event) => setForm((atual) => ({ ...atual, sku: event.target.value }))}
+                    onChange={(event) =>
+                      setForm((atual) => ({ ...atual, sku: event.target.value }))
+                    }
                     required
                     value={form.sku}
                   />
@@ -443,7 +495,9 @@ export function Catalogo() {
                   <Input
                     id="preco"
                     inputMode="decimal"
-                    onChange={(event) => setForm((atual) => ({ ...atual, preco: event.target.value }))}
+                    onChange={(event) =>
+                      setForm((atual) => ({ ...atual, preco: event.target.value }))
+                    }
                     placeholder="0,00"
                     required
                     value={form.preco}

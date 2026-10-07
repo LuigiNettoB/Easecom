@@ -1,6 +1,7 @@
 from django.urls import path
 
 from apps.canais.views import (
+    MercadoLivreAnunciosView,
     MercadoLivreCallbackView,
     MercadoLivreConectarView,
     MercadoLivreStatusView,
@@ -21,5 +22,10 @@ urlpatterns = [
         "canais/mercado-livre/status",
         MercadoLivreStatusView.as_view(),
         name="canais-ml-status",
+    ),
+    path(
+        "canais/mercado-livre/anuncios",
+        MercadoLivreAnunciosView.as_view(),
+        name="canais-ml-anuncios",
     ),
 ]

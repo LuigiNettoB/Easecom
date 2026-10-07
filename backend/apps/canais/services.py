@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 import requests
 from django.conf import settings
 from django.core import signing
+from django.core.cache import cache
 from django.utils import timezone
 
 from apps.canais.models import MercadoLivreToken
@@ -199,3 +200,92 @@ def chamar_api_mercado_livre(
     )
     resposta.raise_for_status()
     return resposta
+
+
+# --- Anúncios do vendedor ---------------------------------------------------
+
+# O multiget `/items?ids=` aceita no máximo 20 ids por chamada.
+TAMANHO_LOTE_MULTIGET = 20
+LIMITE_ANUNCIOS = 100
+CAMPOS_ANUNCIO = (
+    "id,title,price,currency_id,available_quantity,sold_quantity,status,"
+    "category_id,thumbnail,pictures,permalink,seller_custom_field,attributes"
+)
+# Nome de categoria praticamente nunca muda — evita uma chamada por categoria
+# a cada carregamento do catálogo.
+VALIDADE_CACHE_CATEGORIA_SEGUNDOS = 60 * 60 * 24
+
+
+def _chamar_api_ou_erro(*, vendedor: Vendedor, caminho: str, **kwargs) -> dict | list:
+    try:
+        return chamar_api_mercado_livre(vendedor=vendedor, caminho=caminho, **kwargs).json()
+    except requests.RequestException as exc:
+        logger.warning("Falha ao consultar a API do Mercado Livre (%s): %s", caminho, exc)
+        raise ErroDeNegocio(
+            mensagem="Não foi possível buscar os dados no Mercado Livre agora.",
+            codigo="ml_indisponivel",
+            status_code=502,
+        ) from exc
+
+
+def _nome_categoria(*, vendedor: Vendedor, categoria_id: str) -> str:
+    chave = f"ml_categoria_{categoria_id}"
+    nome = cache.get(chave)
+    if nome is None:
+        nome = _chamar_api_ou_erro(vendedor=vendedor, caminho=f"/categories/{categoria_id}")["name"]
+        cache.set(chave, nome, VALIDADE_CACHE_CATEGORIA_SEGUNDOS)
+    return nome
+
+
+def _sku_do_anuncio(anuncio: dict) -> str:
+    if anuncio.get("seller_custom_field"):
+        return anuncio["seller_custom_field"]
+    for atributo in anuncio.get("attributes") or []:
+        if atributo.get("id") == "SELLER_SKU" and atributo.get("value_name"):
+            return atributo["value_name"]
+    return ""
+
+
+def _foto_do_anuncio(anuncio: dict) -> str:
+    fotos = anuncio.get("pictures") or []
+    if fotos and fotos[0].get("secure_url"):
+        return fotos[0]["secure_url"]
+    return (anuncio.get("thumbnail") or "").replace("http://", "https://", 1)
+
+
+def listar_anuncios_mercado_livre(*, vendedor: Vendedor) -> list[dict]:
+    """Lista os anúncios que o vendedor tem na conta conectada do Mercado Livre."""
+    token = obter_token_valido(vendedor=vendedor)
+    busca = _chamar_api_ou_erro(
+        vendedor=vendedor,
+        caminho=f"/users/{token.ml_user_id}/items/search",
+        params={"limit": LIMITE_ANUNCIOS},
+    )
+    ids = busca["results"]
+
+    anuncios = []
+    for inicio in range(0, len(ids), TAMANHO_LOTE_MULTIGET):
+        lote = ids[inicio : inicio + TAMANHO_LOTE_MULTIGET]
+        respostas = _chamar_api_ou_erro(
+            vendedor=vendedor,
+            caminho="/items",
+            params={"ids": ",".join(lote), "attributes": CAMPOS_ANUNCIO},
+        )
+        anuncios.extend(r["body"] for r in respostas if r.get("code") == 200)
+
+    return [
+        {
+            "id": anuncio["id"],
+            "titulo": anuncio["title"],
+            "sku": _sku_do_anuncio(anuncio),
+            "categoria": _nome_categoria(vendedor=vendedor, categoria_id=anuncio["category_id"]),
+            "preco": anuncio["price"],
+            "moeda": anuncio["currency_id"],
+            "estoque": anuncio["available_quantity"],
+            "vendidos": anuncio.get("sold_quantity") or 0,
+            "status": anuncio["status"],
+            "foto": _foto_do_anuncio(anuncio),
+            "link": anuncio.get("permalink") or "",
+        }
+        for anuncio in anuncios
+    ]

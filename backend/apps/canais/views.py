@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from apps.canais.services import (
     esta_conectado_ao_mercado_livre,
     gerar_url_autorizacao,
+    listar_anuncios_mercado_livre,
     processar_callback_oauth,
 )
 from apps.core.exceptions import ErroDeNegocio
@@ -39,6 +40,22 @@ class MercadoLivreStatusView(APIView):
             return Response({"conectado": False})
         conectado = esta_conectado_ao_mercado_livre(vendedor=request.user.vendedor)
         return Response({"conectado": conectado})
+
+
+@extend_schema(tags=["canais"])
+class MercadoLivreAnunciosView(APIView):
+    """Lista os anúncios da conta do Mercado Livre conectada pelo vendedor atual."""
+
+    @extend_schema(responses={200: dict})
+    def get(self, request):
+        if request.user.vendedor_id is None:
+            raise ErroDeNegocio(
+                mensagem="Usuário sem vendedor associado não possui anúncios.",
+                codigo="vendedor_ausente",
+                status_code=400,
+            )
+        anuncios = listar_anuncios_mercado_livre(vendedor=request.user.vendedor)
+        return Response({"anuncios": anuncios})
 
 
 @extend_schema(tags=["canais"])

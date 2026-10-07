@@ -45,3 +45,17 @@ export interface ErroApi {
   mensagem: string
   erros_de_campo?: ErroDeCampo[]
 }
+
+export interface AnuncioMercadoLivre {
+  id: string
+  titulo: string
+  sku: string
+  categoria: string
+  preco: number
+  moeda: string
+  estoque: number
+  vendidos: number
+  status: string
+  foto: string
+  link: string
+}

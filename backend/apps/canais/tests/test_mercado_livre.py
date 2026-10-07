@@ -3,7 +3,9 @@ from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+import requests
 from django.core import signing
+from django.core.cache import cache
 from django.utils import timezone
 
 from apps.canais.models import MercadoLivreToken
@@ -11,6 +13,7 @@ from apps.canais.services import (
     SALT_STATE,
     chamar_api_mercado_livre,
     gerar_url_autorizacao,
+    listar_anuncios_mercado_livre,
     obter_token_valido,
     processar_callback_oauth,
 )
@@ -261,3 +264,163 @@ class TestEndpointsHttp:
 
         assert resposta.status_code == 302
         assert resposta.url == "http://localhost:5173/canais?mercado_livre=erro"
+
+
+ANUNCIO_COM_SKU_EM_CAMPO = {
+    "id": "MLB1",
+    "title": "Mousepad Gamer",
+    "price": 49.9,
+    "currency_id": "BRL",
+    "available_quantity": 43,
+    "sold_quantity": 2,
+    "status": "active",
+    "category_id": "MLB1716",
+    "thumbnail": "http://http2.mlstatic.com/thumb-1.jpg",
+    "pictures": [{"secure_url": "https://http2.mlstatic.com/foto-1.jpg"}],
+    "permalink": "https://produto.mercadolivre.com.br/MLB-1",
+    "seller_custom_field": "MP-01",
+    "attributes": [],
+}
+ANUNCIO_COM_SKU_EM_ATRIBUTO = {
+    "id": "MLB2",
+    "title": "Cabo HDMI",
+    "price": 29.9,
+    "currency_id": "BRL",
+    "available_quantity": 56,
+    "sold_quantity": None,
+    "status": "under_review",
+    "category_id": "MLB38186",
+    "thumbnail": "http://http2.mlstatic.com/thumb-2.jpg",
+    "pictures": [],
+    "permalink": "https://produto.mercadolivre.com.br/MLB-2",
+    "seller_custom_field": None,
+    "attributes": [{"id": "SELLER_SKU", "value_name": "CAB-HDMI"}],
+}
+
+
+def _api_ml_falsa(metodo, url, **kwargs):
+    if url.endswith("/users/777/items/search"):
+        return _resposta_mock({"results": ["MLB1", "MLB2", "MLB3"]})
+    if url.endswith("/items"):
+        return _resposta_mock(
+            [
+                {"code": 200, "body": ANUNCIO_COM_SKU_EM_CAMPO},
+                {"code": 200, "body": ANUNCIO_COM_SKU_EM_ATRIBUTO},
+                {"code": 404, "body": {"error": "not_found"}},
+            ]
+        )
+    if url.endswith("/categories/MLB1716"):
+        return _resposta_mock({"name": "Mouse Pads"})
+    if url.endswith("/categories/MLB38186"):
+        return _resposta_mock({"name": "Áudio e Vídeo"})
+    raise AssertionError(f"URL inesperada: {url}")
+
+
+def _vendedor_conectado(vendedor=None):
+    vendedor = vendedor or VendedorFactory()
+    MercadoLivreToken.objects_todos.create(
+        vendedor=vendedor,
+        ml_user_id=777,
+        access_token="token",
+        refresh_token="refresh",
+        expires_at=timezone.now() + timedelta(hours=1),
+    )
+    return vendedor
+
+
+@pytest.mark.django_db
+class TestListarAnunciosMercadoLivre:
+    def setup_method(self):
+        cache.clear()
+
+    def test_normaliza_anuncios_da_conta_conectada(self):
+        vendedor = _vendedor_conectado()
+
+        with patch("apps.canais.services.requests.request", side_effect=_api_ml_falsa):
+            anuncios = listar_anuncios_mercado_livre(vendedor=vendedor)
+
+        assert anuncios == [
+            {
+                "id": "MLB1",
+                "titulo": "Mousepad Gamer",
+                "sku": "MP-01",
+                "categoria": "Mouse Pads",
+                "preco": 49.9,
+                "moeda": "BRL",
+                "estoque": 43,
+                "vendidos": 2,
+                "status": "active",
+                "foto": "https://http2.mlstatic.com/foto-1.jpg",
+                "link": "https://produto.mercadolivre.com.br/MLB-1",
+            },
+            {
+                "id": "MLB2",
+                "titulo": "Cabo HDMI",
+                "sku": "CAB-HDMI",
+                "categoria": "Áudio e Vídeo",
+                "preco": 29.9,
+                "moeda": "BRL",
+                "estoque": 56,
+                "vendidos": 0,
+                "status": "under_review",
+                "foto": "https://http2.mlstatic.com/thumb-2.jpg",
+                "link": "https://produto.mercadolivre.com.br/MLB-2",
+            },
+        ]
+
+    def test_falha_na_api_levanta_erro_de_negocio(self):
+        vendedor = _vendedor_conectado()
+
+        with patch(
+            "apps.canais.services.requests.request",
+            side_effect=requests.ConnectionError("sem rede"),
+        ):
+            with pytest.raises(ErroDeNegocio) as excecao:
+                listar_anuncios_mercado_livre(vendedor=vendedor)
+
+        assert excecao.value.codigo == "ml_indisponivel"
+        assert excecao.value.status_code == 502
+
+
+@pytest.mark.django_db
+class TestEndpointAnuncios:
+    def setup_method(self):
+        cache.clear()
+
+    def _autenticar(self, client, usuario):
+        login = client.post(
+            "/api/v1/auth/login",
+            {"email": usuario.email, "password": SENHA_PADRAO},
+            format="json",
+        )
+        return login.data["access"]
+
+    def test_retorna_anuncios_do_vendedor_conectado(self, client):
+        usuario = UsuarioFactory(email="anuncios-conectado@teste.com")
+        _vendedor_conectado(usuario.vendedor)
+        access = self._autenticar(client, usuario)
+
+        with patch("apps.canais.services.requests.request", side_effect=_api_ml_falsa):
+            resposta = client.get(
+                "/api/v1/canais/mercado-livre/anuncios",
+                HTTP_AUTHORIZATION=f"Bearer {access}",
+            )
+
+        assert resposta.status_code == 200
+        assert [a["id"] for a in resposta.data["anuncios"]] == ["MLB1", "MLB2"]
+
+    def test_vendedor_sem_conexao_retorna_400(self, client):
+        usuario = UsuarioFactory(email="anuncios-desconectado@teste.com")
+        access = self._autenticar(client, usuario)
+
+        resposta = client.get(
+            "/api/v1/canais/mercado-livre/anuncios",
+            HTTP_AUTHORIZATION=f"Bearer {access}",
+        )
+
+        assert resposta.status_code == 400
+        assert resposta.data["codigo"] == "ml_nao_conectado"
+
+    def test_sem_token_retorna_401(self, client):
+        resposta = client.get("/api/v1/canais/mercado-livre/anuncios")
+        assert resposta.status_code == 401
