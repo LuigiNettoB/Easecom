@@ -81,7 +81,7 @@ export function Financeiro() {
         <h1 className="text-2xl font-semibold text-[#00305c]">Financeiro</h1>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
         {indicadores.map((indicador) => (
           <Card className={cn('border-l-4', indicador.corBorda)} key={indicador.rotulo}>
             <CardContent className="p-5">
