@@ -258,7 +258,8 @@ export function Catalogo() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
+      {/* Tabela do computador */}
+      <div className="hidden md:block overflow-hidden rounded-lg border border-border bg-background shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[860px] text-left text-sm">
             <thead className="border-b border-border bg-[#005DAA]/5 text-xs font-semibold uppercase tracking-wide text-[#005DAA]">
@@ -337,6 +338,87 @@ export function Catalogo() {
             </tbody>
           </table>
         </div>
+        {produtosFiltrados.length === 0 && (
+          <p className="px-5 py-10 text-center text-sm text-muted-foreground">
+            Nenhum produto encontrado.
+          </p>
+        )}
+      </div>
+
+      {/* Cards para celular */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {produtosFiltrados.map((produto) => {
+          const estoqueBaixo = produto.estoque <= LIMITE_ESTOQUE_BAIXO
+
+          return (
+            <div
+              key={produto.id}
+              className="flex flex-col gap-3 rounded-lg border border-border bg-background p-4 shadow-sm"
+            >
+              <div className="flex items-start gap-3">
+                <button
+                  aria-label={`Ampliar foto de ${produto.nome}`}
+                  className="block shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005DAA]"
+                  onClick={() => setProdutoSelecionado(produto)}
+                  type="button"
+                >
+                  <img
+                    alt={`Foto de ${produto.nome}`}
+                    className="h-14 w-14 rounded-md border border-border object-cover"
+                    src={produto.foto}
+                  />
+                </button>
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <p className="font-medium text-foreground text-sm leading-snug">
+                    {produto.nome}
+                  </p>
+                  <p className="font-mono text-xs text-muted-foreground">{produto.sku}</p>
+                  <p className="text-xs text-muted-foreground">{produto.categoria}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-border pt-2 text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground">Preço</p>
+                  <p className="font-semibold text-[#00305c]">{moeda.format(produto.preco)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Estoque</p>
+                  <div className="flex items-center gap-1.5 justify-end">
+                    <span className="font-medium text-foreground">{produto.estoque} un.</span>
+                    <span
+                      className={
+                        estoqueBaixo
+                          ? 'rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-800'
+                          : 'rounded-full bg-[#85FA51]/25 px-2 py-0.5 text-[10px] font-medium text-[#1f5c0a]'
+                      }
+                    >
+                      {estoqueBaixo ? 'Baixo' : 'Normal'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-2">
+                <p className="text-xs text-muted-foreground mb-1">Canais</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {produto.canais.map((canal) => (
+                    <span
+                      className="rounded-full bg-[#005DAA]/10 px-2 py-0.5 text-[11px] font-medium text-[#005DAA]"
+                      key={canal}
+                    >
+                      {canal}
+                    </span>
+                  ))}
+                  {produto.canais.length === 0 && (
+                    <span className="text-xs text-muted-foreground">Nenhum canal</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+
         {produtosFiltrados.length === 0 && (
           <p className="px-5 py-10 text-center text-sm text-muted-foreground">
             Nenhum produto encontrado.
