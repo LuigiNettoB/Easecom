@@ -59,3 +59,38 @@ export interface AnuncioMercadoLivre {
   foto: string
   link: string
 }
+
+export interface AtributoAnuncio {
+  nome: string
+  valor: string
+}
+
+export interface AnuncioMercadoLivreDetalhe extends AnuncioMercadoLivre {
+  fotos: string[]
+  descricao: string
+  condicao: string
+  garantia: string
+  frete_gratis: boolean
+  criado_em: string | null
+  atributos: AtributoAnuncio[]
+}
+
+export interface ItemPedidoMercadoLivre {
+  anuncio_id: string
+  titulo: string
+  categoria: string
+  quantidade: number
+  preco_unitario: number
+  tarifa: number
+}
+
+export interface PedidoMercadoLivre {
+  id: string
+  data: string
+  status: string
+  total: number
+  comprador: string
+  forma_pagamento: string
+  parcelas: number
+  itens: ItemPedidoMercadoLivre[]
+}

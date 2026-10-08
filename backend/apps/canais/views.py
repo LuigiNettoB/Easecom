@@ -9,6 +9,8 @@ from apps.canais.services import (
     esta_conectado_ao_mercado_livre,
     gerar_url_autorizacao,
     listar_anuncios_mercado_livre,
+    listar_pedidos_mercado_livre,
+    obter_anuncio_mercado_livre,
     processar_callback_oauth,
 )
 from apps.core.exceptions import ErroDeNegocio
@@ -56,6 +58,38 @@ class MercadoLivreAnunciosView(APIView):
             )
         anuncios = listar_anuncios_mercado_livre(vendedor=request.user.vendedor)
         return Response({"anuncios": anuncios})
+
+
+@extend_schema(tags=["canais"])
+class MercadoLivreAnuncioDetalheView(APIView):
+    """Detalha um anúncio da conta do Mercado Livre conectada pelo vendedor atual."""
+
+    @extend_schema(responses={200: dict})
+    def get(self, request, anuncio_id):
+        if request.user.vendedor_id is None:
+            raise ErroDeNegocio(
+                mensagem="Usuário sem vendedor associado não possui anúncios.",
+                codigo="vendedor_ausente",
+                status_code=400,
+            )
+        anuncio = obter_anuncio_mercado_livre(vendedor=request.user.vendedor, anuncio_id=anuncio_id)
+        return Response(anuncio)
+
+
+@extend_schema(tags=["canais"])
+class MercadoLivrePedidosView(APIView):
+    """Lista os pedidos (vendas) da conta do Mercado Livre conectada pelo vendedor atual."""
+
+    @extend_schema(responses={200: dict})
+    def get(self, request):
+        if request.user.vendedor_id is None:
+            raise ErroDeNegocio(
+                mensagem="Usuário sem vendedor associado não possui pedidos.",
+                codigo="vendedor_ausente",
+                status_code=400,
+            )
+        pedidos = listar_pedidos_mercado_livre(vendedor=request.user.vendedor)
+        return Response({"pedidos": pedidos})
 
 
 @extend_schema(tags=["canais"])

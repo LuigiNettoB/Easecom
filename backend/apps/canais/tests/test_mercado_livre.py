@@ -14,6 +14,8 @@ from apps.canais.services import (
     chamar_api_mercado_livre,
     gerar_url_autorizacao,
     listar_anuncios_mercado_livre,
+    listar_pedidos_mercado_livre,
+    obter_anuncio_mercado_livre,
     obter_token_valido,
     processar_callback_oauth,
 )
@@ -424,3 +426,173 @@ class TestEndpointAnuncios:
     def test_sem_token_retorna_401(self, client):
         resposta = client.get("/api/v1/canais/mercado-livre/anuncios")
         assert resposta.status_code == 401
+
+
+def _api_ml_detalhe_falsa(metodo, url, **kwargs):
+    if url.endswith("/items/MLB1/description"):
+        return _resposta_mock({"plain_text": "Mousepad grande."})
+    if url.endswith("/items/MLB1"):
+        return _resposta_mock(
+            {
+                **ANUNCIO_COM_SKU_EM_CAMPO,
+                "seller_id": 777,
+                "pictures": [
+                    {"secure_url": "https://http2.mlstatic.com/foto-1.jpg"},
+                    {"secure_url": "https://http2.mlstatic.com/foto-2.jpg"},
+                ],
+                "attributes": [
+                    {"id": "BRAND", "name": "Marca", "value_name": "Speed"},
+                    {"id": "GTIN", "name": "Código universal", "value_name": None},
+                ],
+                "condition": "new",
+                "warranty": "Garantia de fábrica: 3 meses",
+                "shipping": {"free_shipping": True},
+                "date_created": "2026-09-09T17:20:02.352Z",
+            }
+        )
+    if url.endswith("/items/MLB9"):
+        return _resposta_mock({**ANUNCIO_COM_SKU_EM_CAMPO, "id": "MLB9", "seller_id": 555})
+    if url.endswith("/items/MLB404"):
+        resposta = Mock(status_code=404)
+        erro = requests.HTTPError("404", response=resposta)
+        return Mock(raise_for_status=Mock(side_effect=erro))
+    if url.endswith("/categories/MLB1716"):
+        return _resposta_mock({"name": "Mouse Pads"})
+    raise AssertionError(f"URL inesperada: {url}")
+
+
+@pytest.mark.django_db
+class TestObterAnuncioMercadoLivre:
+    def setup_method(self):
+        cache.clear()
+
+    def test_detalha_anuncio_da_conta_conectada(self):
+        vendedor = _vendedor_conectado()
+
+        with patch("apps.canais.services.requests.request", side_effect=_api_ml_detalhe_falsa):
+            anuncio = obter_anuncio_mercado_livre(vendedor=vendedor, anuncio_id="MLB1")
+
+        assert anuncio["titulo"] == "Mousepad Gamer"
+        assert anuncio["categoria"] == "Mouse Pads"
+        assert anuncio["fotos"] == [
+            "https://http2.mlstatic.com/foto-1.jpg",
+            "https://http2.mlstatic.com/foto-2.jpg",
+        ]
+        assert anuncio["descricao"] == "Mousepad grande."
+        assert anuncio["atributos"] == [{"nome": "Marca", "valor": "Speed"}]
+        assert anuncio["frete_gratis"] is True
+        assert anuncio["condicao"] == "new"
+
+    @pytest.mark.parametrize("anuncio_id", ["MLB9", "MLB404", "../users/me", "mlb1"])
+    def test_anuncio_de_outro_vendedor_inexistente_ou_invalido_nao_e_encontrado(self, anuncio_id):
+        vendedor = _vendedor_conectado()
+
+        with patch("apps.canais.services.requests.request", side_effect=_api_ml_detalhe_falsa):
+            with pytest.raises(ErroDeNegocio) as excecao:
+                obter_anuncio_mercado_livre(vendedor=vendedor, anuncio_id=anuncio_id)
+
+        assert excecao.value.status_code == 404
+
+    def test_endpoint_retorna_detalhe(self, client):
+        usuario = UsuarioFactory(email="anuncio-detalhe@teste.com")
+        _vendedor_conectado(usuario.vendedor)
+        login = client.post(
+            "/api/v1/auth/login",
+            {"email": usuario.email, "password": SENHA_PADRAO},
+            format="json",
+        )
+
+        with patch("apps.canais.services.requests.request", side_effect=_api_ml_detalhe_falsa):
+            resposta = client.get(
+                "/api/v1/canais/mercado-livre/anuncios/MLB1",
+                HTTP_AUTHORIZATION=f"Bearer {login.data['access']}",
+            )
+
+        assert resposta.status_code == 200
+        assert resposta.data["id"] == "MLB1"
+
+
+def _pedido_ml(id_pedido, data):
+    return {
+        "id": id_pedido,
+        "date_created": data,
+        "status": "paid",
+        "total_amount": 99.8,
+        "buyer": {"nickname": "COMPRADOR"},
+        "payments": [{"payment_type": "credit_card", "installments": 3}],
+        "order_items": [
+            {
+                "item": {"id": "MLB1", "title": "Mousepad Gamer", "category_id": "MLB1716"},
+                "quantity": 2,
+                "unit_price": 49.9,
+                "sale_fee": 6.49,
+            }
+        ],
+    }
+
+
+@pytest.mark.django_db
+class TestListarPedidosMercadoLivre:
+    def setup_method(self):
+        cache.clear()
+
+    def test_pagina_ate_o_total_e_normaliza(self):
+        vendedor = _vendedor_conectado()
+        paginas = {
+            0: {
+                "results": [_pedido_ml(1, "2026-09-09T14:11:17.000-04:00")],
+                "paging": {"total": 2},
+            },
+            1: {
+                "results": [_pedido_ml(2, "2026-09-08T10:00:00.000-04:00")],
+                "paging": {"total": 2},
+            },
+        }
+
+        def api_falsa(metodo, url, **kwargs):
+            if url.endswith("/orders/search"):
+                assert kwargs["params"]["seller"] == 777
+                return _resposta_mock(paginas[kwargs["params"]["offset"]])
+            if url.endswith("/categories/MLB1716"):
+                return _resposta_mock({"name": "Mouse Pads"})
+            raise AssertionError(f"URL inesperada: {url}")
+
+        with patch("apps.canais.services.requests.request", side_effect=api_falsa):
+            pedidos = listar_pedidos_mercado_livre(vendedor=vendedor)
+
+        assert [p["id"] for p in pedidos] == ["1", "2"]
+        assert pedidos[0] == {
+            "id": "1",
+            "data": "2026-09-09T14:11:17.000-04:00",
+            "status": "paid",
+            "total": 99.8,
+            "comprador": "COMPRADOR",
+            "forma_pagamento": "credit_card",
+            "parcelas": 3,
+            "itens": [
+                {
+                    "anuncio_id": "MLB1",
+                    "titulo": "Mousepad Gamer",
+                    "categoria": "Mouse Pads",
+                    "quantidade": 2,
+                    "preco_unitario": 49.9,
+                    "tarifa": 6.49,
+                }
+            ],
+        }
+
+    def test_endpoint_sem_conexao_retorna_400(self, client):
+        usuario = UsuarioFactory(email="pedidos-desconectado@teste.com")
+        login = client.post(
+            "/api/v1/auth/login",
+            {"email": usuario.email, "password": SENHA_PADRAO},
+            format="json",
+        )
+
+        resposta = client.get(
+            "/api/v1/canais/mercado-livre/pedidos",
+            HTTP_AUTHORIZATION=f"Bearer {login.data['access']}",
+        )
+
+        assert resposta.status_code == 400
+        assert resposta.data["codigo"] == "ml_nao_conectado"
