@@ -19,6 +19,7 @@ import {
   type Venda,
 } from '@/features/financeiro/vendas'
 import { cn } from '@/shared/lib/cn'
+import { definirIncluirDemonstracao, useIncluirDemonstracao } from '@/shared/preferencias'
 import { Button } from '@/shared/ui/Button'
 import { Card } from '@/shared/ui/Card'
 import { Input } from '@/shared/ui/Input'
@@ -81,7 +82,7 @@ function estiloChip(ativo: boolean) {
 }
 
 export function PedidosPage() {
-  const [incluirDemonstracao, setIncluirDemonstracao] = useState(true)
+  const incluirDemonstracao = useIncluirDemonstracao()
   const { hoje, vendas, reais, anuncios, carregando } = useVendas(incluirDemonstracao)
   const acoes = useFiltrosPedidos()
   const { filtros, pagina } = acoes
@@ -219,7 +220,7 @@ export function PedidosPage() {
                 'relative h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005DAA] focus-visible:ring-offset-2',
                 incluirDemonstracao ? 'bg-[#005DAA]' : 'bg-muted-foreground/30',
               )}
-              onClick={() => setIncluirDemonstracao((atual) => !atual)}
+              onClick={() => definirIncluirDemonstracao(!incluirDemonstracao)}
               role="switch"
               type="button"
             >

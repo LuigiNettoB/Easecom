@@ -19,6 +19,7 @@ import type { Produto } from '@/features/catalogo/produtos'
 import { useVendas } from '@/features/financeiro/vendas'
 import { useAuth } from '@/shared/auth/AuthContext'
 import { cn } from '@/shared/lib/cn'
+import { useIncluirDemonstracao } from '@/shared/preferencias'
 import { Card } from '@/shared/ui/Card'
 
 import { AvatarFornecedor, BannerFornecedor, BotoesContato, Estrelas } from './componentes'
@@ -139,7 +140,7 @@ export function FornecedorPerfilPage() {
 
 function PerfilFornecedor({ fornecedor }: { fornecedor: Fornecedor }) {
   const { usuario } = useAuth()
-  const { vendas, anuncios, hoje } = useVendas(true)
+  const { vendas, anuncios, hoje } = useVendas(useIncluirDemonstracao())
   const { copiado, copiar } = useCopiar()
   const [nota, setNota] = useState(() => lerNota(fornecedor.id))
   const [selecao, setSelecao] = useState<Record<string, number>>({})

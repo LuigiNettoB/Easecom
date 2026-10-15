@@ -13,6 +13,7 @@ import { useVendas } from '@/features/financeiro/vendas'
 import { api } from '@/shared/api/client'
 import { useAuth } from '@/shared/auth/AuthContext'
 import { cn } from '@/shared/lib/cn'
+import { useIncluirDemonstracao } from '@/shared/preferencias'
 import { Card } from '@/shared/ui/Card'
 
 import {
@@ -85,7 +86,8 @@ const OUTROS_CANAIS = ['Shopee', 'Amazon', 'Magalu']
 
 export function InicioPage() {
   const { usuario } = useAuth()
-  const { hoje, vendas, reais, anuncios, carregando } = useVendas(true)
+  const incluirDemonstracao = useIncluirDemonstracao()
+  const { hoje, vendas, reais, anuncios, carregando } = useVendas(incluirDemonstracao)
   const statusMl = useQuery({
     queryKey: ['canais', 'mercado-livre', 'status'],
     queryFn: async () =>
@@ -154,7 +156,9 @@ export function InicioPage() {
               to="/financeiro"
             >
               <InformationCircleIcon className="h-3.5 w-3.5" />
-              {reais.length} vendas reais + dados de demonstração
+              {incluirDemonstracao
+                ? `${reais.length} vendas reais + dados de demonstração`
+                : `Somente as ${reais.length} vendas reais`}
             </Link>
           </div>
 

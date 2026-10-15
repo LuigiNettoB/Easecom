@@ -6,6 +6,7 @@ import { useVendas, type Venda } from '@/features/financeiro/vendas'
 import { FORNECEDORES } from '@/features/fornecedores/dados'
 import { resumoDoMes } from '@/features/inicio/dados'
 import { api } from '@/shared/api/client'
+import { useIncluirDemonstracao } from '@/shared/preferencias'
 
 export const CATEGORIAS = {
   vendas: 'Vendas',
@@ -316,7 +317,7 @@ function deSistema(vendas: Venda[], hoje: Date, conectado: boolean | undefined):
 }
 
 export function useNotificacoes() {
-  const { vendas, anuncios, hoje, carregando } = useVendas(true)
+  const { vendas, anuncios, hoje, carregando } = useVendas(useIncluirDemonstracao())
   const status = useQuery({
     queryKey: ['canais', 'mercado-livre', 'status'],
     queryFn: async () =>

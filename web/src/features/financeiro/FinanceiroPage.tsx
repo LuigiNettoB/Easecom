@@ -11,6 +11,7 @@ import {
 
 import { useAuth } from '@/shared/auth/AuthContext'
 import { cn } from '@/shared/lib/cn'
+import { definirIncluirDemonstracao, useIncluirDemonstracao } from '@/shared/preferencias'
 import { Card } from '@/shared/ui/Card'
 
 import { BarrasHorizontais, GraficoTemporal, Rosca } from './graficos'
@@ -201,7 +202,7 @@ export function FinanceiroPage() {
   const [granularidade, setGranularidade] = useState<Granularidade>('mensal')
   const [metrica, setMetrica] = useState<'faturamento' | 'pedidos'>('faturamento')
   const [verTabela, setVerTabela] = useState(false)
-  const [incluirDemonstracao, setIncluirDemonstracao] = useState(true)
+  const incluirDemonstracao = useIncluirDemonstracao()
 
   const { hoje, vendas, reais, anuncios, pedidosReais, carregando } = useVendas(incluirDemonstracao)
 
@@ -301,7 +302,7 @@ export function FinanceiroPage() {
               'relative h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005DAA] focus-visible:ring-offset-2',
               incluirDemonstracao ? 'bg-[#005DAA]' : 'bg-muted-foreground/30',
             )}
-            onClick={() => setIncluirDemonstracao((atual) => !atual)}
+            onClick={() => definirIncluirDemonstracao(!incluirDemonstracao)}
             role="switch"
             type="button"
           >
