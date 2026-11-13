@@ -55,9 +55,7 @@ class LancamentoListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         return Lancamento.objects.all()
 
-    @extend_schema(
-        request=LancamentoEntradaSerializer, responses={201: LancamentoSaidaSerializer}
-    )
+    @extend_schema(request=LancamentoEntradaSerializer, responses={201: LancamentoSaidaSerializer})
     def post(self, request, *args, **kwargs):
         entrada = LancamentoEntradaSerializer(data=request.data)
         entrada.is_valid(raise_exception=True)

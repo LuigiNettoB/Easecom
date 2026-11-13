@@ -28,8 +28,11 @@ class Produto(ModeloMultiTenant):
     class Meta:
         ordering = ["nome"]
         constraints = [
+            # SKU é opcional: só vale a unicidade quando ele foi preenchido
             models.UniqueConstraint(
-                fields=["vendedor", "sku"], name="produto_sku_unico_por_vendedor"
+                fields=["vendedor", "sku"],
+                condition=~models.Q(sku=""),
+                name="produto_sku_unico_por_vendedor",
             ),
         ]
 

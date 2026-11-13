@@ -158,14 +158,10 @@ class TestLancamentos:
         estranho = UsuarioFactory()
         _criar_despesa(dono.vendedor, valor=30)
 
-        resposta = client.get(
-            "/api/v1/financeiro/lancamentos", **_autenticar(client, estranho)
-        )
+        resposta = client.get("/api/v1/financeiro/lancamentos", **_autenticar(client, estranho))
 
         assert resposta.data["count"] == 0
 
     def test_rotas_exigem_autenticacao(self, client):
         assert client.get("/api/v1/financeiro/resumo").status_code == 401
-        assert client.post(
-            "/api/v1/financeiro/lancamentos", {}, format="json"
-        ).status_code == 401
+        assert client.post("/api/v1/financeiro/lancamentos", {}, format="json").status_code == 401

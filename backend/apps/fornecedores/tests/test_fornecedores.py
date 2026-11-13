@@ -97,9 +97,7 @@ class TestRotasDeFornecedores:
 
     def test_detalhe_e_atualizacao(self, client):
         usuario = UsuarioFactory()
-        fornecedor = Fornecedor.objects_todos.create(
-            vendedor=usuario.vendedor, nome="Tech Import"
-        )
+        fornecedor = Fornecedor.objects_todos.create(vendedor=usuario.vendedor, nome="Tech Import")
 
         resposta = client.patch(
             f"/api/v1/fornecedores/{fornecedor.id}",

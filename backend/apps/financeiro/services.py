@@ -15,18 +15,16 @@ def obter_resumo_financeiro(*, vendedor, realizado_de=None, realizado_ate=None) 
     (`apps.pedidos`); despesas vêm dos lançamentos manuais (tipo `DESPESA`).
     `realizado_de`/`realizado_ate` filtram por período (ISO datetime).
     """
-    pagos = _pedidos_pagos(vendedor=vendedor, realizado_de=realizado_de, realizado_ate=realizado_ate)
+    pagos = _pedidos_pagos(
+        vendedor=vendedor, realizado_de=realizado_de, realizado_ate=realizado_ate
+    )
     receitas = pagos.aggregate(total=Sum("valor_pago"))["total"] or Decimal("0")
-    taxas = (
-        ItemPedido.objects.filter(pedido__in=pagos).aggregate(total=Sum("taxa_venda"))["total"]
-        or Decimal("0")
-    )
-    despesas = (
-        _lancamentos_manuais(vendedor=vendedor, realizado_de=realizado_de, realizado_ate=realizado_ate)
-        .filter(tipo=TipoLancamento.DESPESA)
-        .aggregate(total=Sum("valor"))["total"]
-        or Decimal("0")
-    )
+    taxas = ItemPedido.objects.filter(pedido__in=pagos).aggregate(total=Sum("taxa_venda"))[
+        "total"
+    ] or Decimal("0")
+    despesas = _lancamentos_manuais(
+        vendedor=vendedor, realizado_de=realizado_de, realizado_ate=realizado_ate
+    ).filter(tipo=TipoLancamento.DESPESA).aggregate(total=Sum("valor"))["total"] or Decimal("0")
 
     if receitas:
         margem = ((receitas - despesas - taxas) / receitas * 100).quantize(Decimal("0.01"))

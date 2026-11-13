@@ -15,7 +15,10 @@ DATABASES = {
         "PORT": env("DB_PORT", default="5432"),
         "OPTIONS": {
             "sslmode": env("DB_SSLMODE", default="prefer"),
-            "options": "-c search_path=test,public",
+            # Só o schema `test`: com `public` no caminho, o Django enxerga as
+            # tabelas de dev, acha que já estão migradas e os testes gravam no
+            # banco de desenvolvimento. O CI (Postgres descartável) usa `public`.
+            "options": f"-c search_path={env('DB_TEST_SCHEMA', default='test')}",
         },
         # Supabase não permite CREATE/DROP DATABASE pela role fornecida — os
         # testes rodam num schema `test` isolado dentro do mesmo banco (ver

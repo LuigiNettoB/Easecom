@@ -11,9 +11,7 @@ class ProdutoFiltro(filters.FilterSet):
 
     busca = filters.CharFilter(method="filtrar_busca")
     categoria = filters.CharFilter(field_name="categoria", lookup_expr="icontains")
-    canal = filters.ChoiceFilter(
-        field_name="canais_relacionados__canal", choices=Canal.choices
-    )
+    canal = filters.ChoiceFilter(field_name="canais_relacionados__canal", choices=Canal.choices)
     estoque_baixo = filters.BooleanFilter(method="filtrar_estoque_baixo")
 
     class Meta:

@@ -66,9 +66,7 @@ class FornecedorDetalheView(APIView):
     def get(self, request, id):
         return Response(FornecedorSaidaSerializer(_obter_fornecedor(request, id)).data)
 
-    @extend_schema(
-        request=FornecedorEntradaSerializer, responses={200: FornecedorSaidaSerializer}
-    )
+    @extend_schema(request=FornecedorEntradaSerializer, responses={200: FornecedorSaidaSerializer})
     def patch(self, request, id):
         entrada = FornecedorEntradaSerializer(data=request.data, partial=True)
         entrada.is_valid(raise_exception=True)

@@ -34,6 +34,7 @@ jobs:
       DB_HOST: localhost
       DB_PORT: "5432"
       DB_TEST_NAME: hub_test
+      DB_TEST_SCHEMA: public
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       SUPABASE_STORAGE_BUCKET: ${{ secrets.SUPABASE_STORAGE_BUCKET }}

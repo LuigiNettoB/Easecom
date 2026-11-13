@@ -81,7 +81,9 @@ class ProdutoDetalheView(APIView):
     def patch(self, request, id):
         entrada = ProdutoEntradaSerializer(data=request.data, partial=True)
         entrada.is_valid(raise_exception=True)
-        produto = atualizar_produto(produto=_obter_produto(request, id), dados=entrada.validated_data)
+        produto = atualizar_produto(
+            produto=_obter_produto(request, id), dados=entrada.validated_data
+        )
         return Response(ProdutoSaidaSerializer(produto).data)
 
     @extend_schema(responses={204: None})

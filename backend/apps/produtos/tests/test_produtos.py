@@ -1,3 +1,5 @@
+import itertools
+
 import pytest
 from rest_framework.test import APIClient
 
@@ -19,8 +21,13 @@ def _autenticar(client, usuario):
     return {"HTTP_AUTHORIZATION": f"Bearer {login.data['access']}"}
 
 
+_skus = itertools.count(1)
+
+
 def _criar_produto(vendedor, **campos):
-    return Produto.objects_todos.create(vendedor=vendedor, nome="Camiseta", sku="CAM-1", **campos)
+    # SKU único por padrão: a constraint não deixa dois produtos do vendedor com o mesmo SKU
+    campos = {"nome": "Camiseta", "sku": f"SKU-{next(_skus)}", **campos}
+    return Produto.objects_todos.create(vendedor=vendedor, **campos)
 
 
 @pytest.mark.django_db
@@ -34,7 +41,7 @@ class TestRotasDeProdutos:
         assert resposta.status_code == 200
         assert resposta.data["count"] == 1
         assert resposta.data["results"][0]["nome"] == "Camiseta"
-        assert resposta.data["results"][0]["preco"] == 129.9
+        assert resposta.json()["results"][0]["preco"] == 129.9
 
     def test_produtos_de_outro_vendedor_nao_aparecem(self, client):
         dono = UsuarioFactory()
@@ -83,6 +90,14 @@ class TestRotasDeProdutos:
         assert resposta.status_code == 409
         assert resposta.data["codigo"] == "sku_duplicado"
 
+    def test_produtos_sem_sku_nao_conflitam(self, client):
+        usuario = UsuarioFactory()
+        cabecalhos = _autenticar(client, usuario)
+
+        for nome in ("Sem SKU 1", "Sem SKU 2"):
+            resposta = client.post("/api/v1/produtos", {"nome": nome}, format="json", **cabecalhos)
+            assert resposta.status_code == 201
+
     def test_filtro_de_busca_por_nome_e_sku(self, client):
         usuario = UsuarioFactory()
         _criar_produto(usuario.vendedor, nome="Fone Bluetooth", sku="FON-1")
@@ -112,9 +127,7 @@ class TestRotasDeProdutos:
         estranho = UsuarioFactory()
         produto = _criar_produto(dono.vendedor)
 
-        resposta = client.get(
-            f"/api/v1/produtos/{produto.id}", **_autenticar(client, estranho)
-        )
+        resposta = client.get(f"/api/v1/produtos/{produto.id}", **_autenticar(client, estranho))
 
         assert resposta.status_code == 404
         assert resposta.data["codigo"] == "recurso_nao_encontrado"

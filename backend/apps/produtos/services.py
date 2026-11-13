@@ -85,9 +85,7 @@ def obter_resumo_estoque(*, vendedor) -> dict:
 
 def _definir_canais(*, produto, canais):
     produto.canais_relacionados.all().delete()
-    ProdutoCanal.objects.bulk_create(
-        ProdutoCanal(produto=produto, canal=canal) for canal in canais
-    )
+    ProdutoCanal.objects.bulk_create(ProdutoCanal(produto=produto, canal=canal) for canal in canais)
 
 
 def _resolver_fornecedor(*, vendedor, fornecedor_id):

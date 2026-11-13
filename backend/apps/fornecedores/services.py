@@ -8,9 +8,7 @@ def criar_fornecedor(*, vendedor, nome, email="", ativo=True) -> Fornecedor:
     """Cria um fornecedor, impedindo e-mail duplicado para o mesmo vendedor."""
     nome = nome.strip()
     email = email.strip().lower()
-    if email and Fornecedor.objects_todos.filter(
-        vendedor=vendedor, email__iexact=email
-    ).exists():
+    if email and Fornecedor.objects_todos.filter(vendedor=vendedor, email__iexact=email).exists():
         raise _erro_email_duplicado()
 
     try:
@@ -28,9 +26,14 @@ def atualizar_fornecedor(*, fornecedor, nome=None, email=None, ativo=None) -> Fo
         fornecedor.nome = nome.strip()
     if email is not None:
         email = email.strip().lower()
-        if email and Fornecedor.objects_todos.filter(
-            vendedor_id=fornecedor.vendedor_id, email__iexact=email
-        ).exclude(pk=fornecedor.pk).exists():
+        if (
+            email
+            and Fornecedor.objects_todos.filter(
+                vendedor_id=fornecedor.vendedor_id, email__iexact=email
+            )
+            .exclude(pk=fornecedor.pk)
+            .exists()
+        ):
             raise _erro_email_duplicado()
         fornecedor.email = email
     if ativo is not None:

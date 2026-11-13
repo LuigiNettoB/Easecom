@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from apps.financeiro.models import Lancamento, TipoLancamento
@@ -16,8 +18,10 @@ class LancamentoEntradaSerializer(serializers.Serializer):
 
     tipo = serializers.ChoiceField(choices=TipoLancamento.choices)
     descricao = serializers.CharField(max_length=255)
-    canal = serializers.ChoiceField(choices=Canal.choices, required=False, allow_blank=True, default="")
-    valor = ValorField(min_value=0)
+    canal = serializers.ChoiceField(
+        choices=Canal.choices, required=False, allow_blank=True, default=""
+    )
+    valor = ValorField(min_value=Decimal("0"))
     data = serializers.DateTimeField(required=False)
 
 
