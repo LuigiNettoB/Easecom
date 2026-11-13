@@ -1,5 +1,5 @@
-import { PaginaEmConstrucao } from '@/pages/PaginaEmConstrucao'
+import { NotificacoesPage } from '@/features/notificacoes/NotificacoesPage'
 
 export function Notificacoes() {
-  return <PaginaEmConstrucao titulo="Notificações" />
+  return <NotificacoesPage />
 }

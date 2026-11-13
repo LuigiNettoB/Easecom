@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import logging
+import re
 import secrets
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -8,11 +9,12 @@ from urllib.parse import urlencode
 import requests
 from django.conf import settings
 from django.core import signing
+from django.core.cache import cache
 from django.utils import timezone
 
 from apps.canais.models import MercadoLivreToken
 from apps.contas.models import Vendedor
-from apps.core.exceptions import ErroDeNegocio
+from apps.core.exceptions import ErroDeNegocio, RecursoNaoEncontrado
 
 logger = logging.getLogger(__name__)
 
@@ -214,3 +216,204 @@ def chamar_api_mercado_livre(
     )
     resposta.raise_for_status()
     return resposta
+
+
+# --- Anúncios do vendedor ---------------------------------------------------
+
+# O multiget `/items?ids=` aceita no máximo 20 ids por chamada.
+TAMANHO_LOTE_MULTIGET = 20
+LIMITE_ANUNCIOS = 100
+CAMPOS_ANUNCIO = (
+    "id,title,price,currency_id,available_quantity,sold_quantity,status,"
+    "category_id,thumbnail,pictures,permalink,seller_custom_field,attributes"
+)
+# Nome de categoria praticamente nunca muda — evita uma chamada por categoria
+# a cada carregamento do catálogo.
+VALIDADE_CACHE_CATEGORIA_SEGUNDOS = 60 * 60 * 24
+
+
+def _chamar_api_ou_erro(*, vendedor: Vendedor, caminho: str, **kwargs) -> dict | list:
+    try:
+        return chamar_api_mercado_livre(vendedor=vendedor, caminho=caminho, **kwargs).json()
+    except requests.RequestException as exc:
+        logger.warning("Falha ao consultar a API do Mercado Livre (%s): %s", caminho, exc)
+        raise ErroDeNegocio(
+            mensagem="Não foi possível buscar os dados no Mercado Livre agora.",
+            codigo="ml_indisponivel",
+            status_code=502,
+        ) from exc
+
+
+def _nome_categoria(*, vendedor: Vendedor, categoria_id: str) -> str:
+    chave = f"ml_categoria_{categoria_id}"
+    nome = cache.get(chave)
+    if nome is None:
+        nome = _chamar_api_ou_erro(vendedor=vendedor, caminho=f"/categories/{categoria_id}")["name"]
+        cache.set(chave, nome, VALIDADE_CACHE_CATEGORIA_SEGUNDOS)
+    return nome
+
+
+def _sku_do_anuncio(anuncio: dict) -> str:
+    if anuncio.get("seller_custom_field"):
+        return anuncio["seller_custom_field"]
+    for atributo in anuncio.get("attributes") or []:
+        if atributo.get("id") == "SELLER_SKU" and atributo.get("value_name"):
+            return atributo["value_name"]
+    return ""
+
+
+def _foto_do_anuncio(anuncio: dict) -> str:
+    fotos = anuncio.get("pictures") or []
+    if fotos and fotos[0].get("secure_url"):
+        return fotos[0]["secure_url"]
+    return (anuncio.get("thumbnail") or "").replace("http://", "https://", 1)
+
+
+def _normalizar_anuncio(*, vendedor: Vendedor, anuncio: dict) -> dict:
+    return {
+        "id": anuncio["id"],
+        "titulo": anuncio["title"],
+        "sku": _sku_do_anuncio(anuncio),
+        "categoria": _nome_categoria(vendedor=vendedor, categoria_id=anuncio["category_id"]),
+        "preco": anuncio["price"],
+        "moeda": anuncio["currency_id"],
+        "estoque": anuncio["available_quantity"],
+        "vendidos": anuncio.get("sold_quantity") or 0,
+        "status": anuncio["status"],
+        "foto": _foto_do_anuncio(anuncio),
+        "link": anuncio.get("permalink") or "",
+    }
+
+
+def listar_anuncios_mercado_livre(*, vendedor: Vendedor) -> list[dict]:
+    """Lista os anúncios que o vendedor tem na conta conectada do Mercado Livre."""
+    token = obter_token_valido(vendedor=vendedor)
+    busca = _chamar_api_ou_erro(
+        vendedor=vendedor,
+        caminho=f"/users/{token.ml_user_id}/items/search",
+        params={"limit": LIMITE_ANUNCIOS},
+    )
+    ids = busca["results"]
+
+    anuncios = []
+    for inicio in range(0, len(ids), TAMANHO_LOTE_MULTIGET):
+        lote = ids[inicio : inicio + TAMANHO_LOTE_MULTIGET]
+        respostas = _chamar_api_ou_erro(
+            vendedor=vendedor,
+            caminho="/items",
+            params={"ids": ",".join(lote), "attributes": CAMPOS_ANUNCIO},
+        )
+        anuncios.extend(r["body"] for r in respostas if r.get("code") == 200)
+
+    return [_normalizar_anuncio(vendedor=vendedor, anuncio=anuncio) for anuncio in anuncios]
+
+
+def _descricao_do_anuncio(*, vendedor: Vendedor, anuncio_id: str) -> str:
+    # Anúncio sem descrição cadastrada responde 404 — não é erro pra quem chama.
+    try:
+        resposta = chamar_api_mercado_livre(
+            vendedor=vendedor, caminho=f"/items/{anuncio_id}/description"
+        )
+    except requests.RequestException:
+        return ""
+    return resposta.json().get("plain_text") or ""
+
+
+def obter_anuncio_mercado_livre(*, vendedor: Vendedor, anuncio_id: str) -> dict:
+    """Detalha um anúncio da conta conectada (fotos, descrição, ficha técnica)."""
+    nao_encontrado = RecursoNaoEncontrado(mensagem="Anúncio não encontrado.")
+    # O id vai direto no caminho da URL da API — só aceita o formato do ML (ex.: MLB123).
+    if not re.fullmatch(r"[A-Z]{3}\d+", anuncio_id):
+        raise nao_encontrado
+    token = obter_token_valido(vendedor=vendedor)
+    try:
+        anuncio = chamar_api_mercado_livre(vendedor=vendedor, caminho=f"/items/{anuncio_id}").json()
+    except requests.HTTPError as exc:
+        if exc.response is not None and exc.response.status_code in (400, 404):
+            raise nao_encontrado from exc
+        raise ErroDeNegocio(
+            mensagem="Não foi possível buscar os dados no Mercado Livre agora.",
+            codigo="ml_indisponivel",
+            status_code=502,
+        ) from exc
+    except requests.RequestException as exc:
+        raise ErroDeNegocio(
+            mensagem="Não foi possível buscar os dados no Mercado Livre agora.",
+            codigo="ml_indisponivel",
+            status_code=502,
+        ) from exc
+
+    # A API devolve anúncios de qualquer vendedor; só mostramos os da conta conectada.
+    if anuncio.get("seller_id") != token.ml_user_id:
+        raise nao_encontrado
+
+    fotos = [foto["secure_url"] for foto in anuncio.get("pictures") or [] if foto.get("secure_url")]
+    return {
+        **_normalizar_anuncio(vendedor=vendedor, anuncio=anuncio),
+        "fotos": fotos or [_foto_do_anuncio(anuncio)],
+        "descricao": _descricao_do_anuncio(vendedor=vendedor, anuncio_id=anuncio["id"]),
+        "condicao": anuncio.get("condition") or "",
+        "garantia": anuncio.get("warranty") or "",
+        "frete_gratis": bool((anuncio.get("shipping") or {}).get("free_shipping")),
+        "criado_em": anuncio.get("date_created"),
+        "atributos": [
+            {"nome": atributo["name"], "valor": atributo["value_name"]}
+            for atributo in anuncio.get("attributes") or []
+            if atributo.get("value_name")
+        ],
+    }
+
+
+# --- Pedidos (vendas) do vendedor --------------------------------------------
+
+# A busca de pedidos aceita no máximo 51 por página.
+TAMANHO_PAGINA_PEDIDOS = 51
+LIMITE_PEDIDOS = 500
+
+
+def _normalizar_pedido(*, vendedor: Vendedor, pedido: dict) -> dict:
+    pagamento = (pedido.get("payments") or [{}])[0]
+    return {
+        "id": str(pedido["id"]),
+        "data": pedido["date_created"],
+        "status": pedido["status"],
+        "total": pedido["total_amount"],
+        "comprador": (pedido.get("buyer") or {}).get("nickname") or "",
+        "forma_pagamento": pagamento.get("payment_type") or "",
+        "parcelas": pagamento.get("installments") or 1,
+        "itens": [
+            {
+                "anuncio_id": item["item"]["id"],
+                "titulo": item["item"]["title"],
+                "categoria": _nome_categoria(
+                    vendedor=vendedor, categoria_id=item["item"]["category_id"]
+                ),
+                "quantidade": item["quantity"],
+                "preco_unitario": item["unit_price"],
+                # tarifa de venda do ML, cobrada por unidade
+                "tarifa": item.get("sale_fee") or 0,
+            }
+            for item in pedido.get("order_items") or []
+        ],
+    }
+
+
+def listar_pedidos_mercado_livre(*, vendedor: Vendedor) -> list[dict]:
+    """Lista os pedidos recebidos na conta conectada do Mercado Livre, mais recentes primeiro."""
+    token = obter_token_valido(vendedor=vendedor)
+    pedidos: list[dict] = []
+    while len(pedidos) < LIMITE_PEDIDOS:
+        pagina = _chamar_api_ou_erro(
+            vendedor=vendedor,
+            caminho="/orders/search",
+            params={
+                "seller": token.ml_user_id,
+                "sort": "date_desc",
+                "limit": TAMANHO_PAGINA_PEDIDOS,
+                "offset": len(pedidos),
+            },
+        )
+        pedidos.extend(pagina["results"])
+        if not pagina["results"] or len(pedidos) >= pagina["paging"]["total"]:
+            break
+    return [_normalizar_pedido(vendedor=vendedor, pedido=pedido) for pedido in pedidos]
