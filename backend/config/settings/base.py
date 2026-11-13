@@ -31,6 +31,11 @@ INSTALLED_APPS = [
     "apps.autenticacao",
     "apps.arquivos",
     "apps.canais",
+    "apps.pedidos",
+    "apps.produtos",
+    "apps.fornecedores",
+    "apps.financeiro",
+    "apps.notificacoes",
 ]
 
 MIDDLEWARE = [
@@ -163,9 +168,26 @@ SPECTACULAR_SETTINGS = {
         {"name": "autenticacao", "description": "Cadastro, login e renovação de token"},
         {"name": "eu", "description": "Dados do usuário autenticado"},
         {"name": "arquivos", "description": "Upload e download de arquivos (Supabase Storage)"},
+        {"name": "pedidos", "description": "Pedidos e vendas de todos os canais conectados"},
         {
             "name": "canais",
             "description": "Dados simulados de canais de venda (fixture temporário)",
+        },
+        {
+            "name": "produtos",
+            "description": "Catálogo e estoque dos produtos do vendedor",
+        },
+        {
+            "name": "fornecedores",
+            "description": "Fornecedores que abastecem os produtos do vendedor",
+        },
+        {
+            "name": "financeiro",
+            "description": "Receitas, despesas, taxas e margem do vendedor",
+        },
+        {
+            "name": "notificacoes",
+            "description": "Avisos e alertas para o vendedor",
         },
     ],
 }

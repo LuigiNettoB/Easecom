@@ -246,6 +246,12 @@ export function CanaisPage() {
                 {erro ?? 'Não foi possível conectar sua conta do Mercado Livre. Tente novamente.'}
               </p>
             )}
+            {retorno === 'conta_em_uso' && (
+              <p className="flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
+                <ExclamationTriangleIcon className="h-5 w-5" />
+                Essa conta do Mercado Livre já está conectada a outro vendedor.
+              </p>
+            )}
 
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
