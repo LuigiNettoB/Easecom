@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 
+import { AssistenteChat } from '@/features/assistente/AssistenteChat'
 import { SinoNotificacoes } from '@/features/notificacoes/SinoNotificacoes'
 import { useNotificacoes } from '@/features/notificacoes/dados'
 import { useAuth } from '@/shared/auth/AuthContext'
@@ -151,6 +152,8 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+
+      <AssistenteChat />
     </div>
   )
 }

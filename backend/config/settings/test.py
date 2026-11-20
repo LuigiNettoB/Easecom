@@ -30,3 +30,7 @@ DATABASES = {
 }
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+# Os testes nunca chamam a IA de verdade (o provedor é simulado): sem chave,
+# uma chamada esquecida falha em vez de gastar a cota de alguém.
+LLM_API_KEY = ""
