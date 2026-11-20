@@ -328,10 +328,49 @@ O front nunca fala com um marketplace: ele consome `/api/v1/pedidos` e
   novo atualiza os pedidos existentes, sem duplicar.
 - As rotas de leitura só consultam o banco; nenhuma delas chama o marketplace.
 
-Ao criar uma migração nova, rode `python manage.py migrate` **antes** do
-`pytest`: os testes usam o mesmo banco com `search_path=test,public`, então um
-`pytest` rodado primeiro cria as tabelas novas no schema `test` e marca a
-migração como aplicada, e o ambiente de desenvolvimento fica sem as tabelas.
+Ao criar uma migração nova, rode `python manage.py migrate` para aplicá-la no
+banco de desenvolvimento (schema `public`). Os testes usam **só** o schema
+`test` (`DB_TEST_SCHEMA`, padrão `test`; o CI usa `public` num Postgres
+descartável) e aplicam as migrações lá sozinhos — um não interfere no outro.
+Se uma execução do `pytest` for interrompida no meio da criação das tabelas,
+recrie o schema no SQL Editor do Supabase (`DROP SCHEMA test CASCADE; CREATE
+SCHEMA test;`) — ele só guarda dados de teste.
+
+## Assistente de vendas (chatbot)
+
+Botão **Assistente** no canto inferior direito de todas as telas: o vendedor
+pergunta em português ("quanto vendi este mês?", "qual canal vende mais?") e
+recebe a resposta com os números da própria loja.
+
+**Como funciona** (`apps/assistente/`): a IA não acessa o banco. Ela só escolhe
+qual consulta rodar (`ferramentas.py`) e com quais filtros; o backend executa a
+consulta (`consultas.py`) sempre com o vendedor da requisição e devolve o
+resultado para a IA redigir a resposta. Os números vêm do banco, nunca da IA, e
+dados de compradores não são enviados a ela.
+
+- **Provedor**: qualquer API compatível com a da OpenAI (`provedor.py`). O
+  padrão é o Google Gemini: crie uma chave gratuita em
+  <https://aistudio.google.com/apikey> e coloque em `GEMINI_API_KEY` no
+  `backend/.env`. Para usar Groq, o servidor da Mauá ou outro, troque
+  `LLM_BASE_URL`, a chave (`LLM_API_KEY`) e `LLM_MODELOS` — o código não muda.
+- **`LLM_MODELOS`** é uma lista em ordem de preferência: se um modelo estiver
+  sobrecarregado ou sem cota, o próximo é tentado.
+- **Limite**: `ASSISTENTE_LIMITE_DIARIO` perguntas por loja por dia (padrão 50),
+  para proteger a cota gratuita. Uma pergunta que falha não conta.
+- **Histórico**: as conversas ficam salvas (`Conversa`/`Mensagem`) e cada
+  usuário vê só as suas.
+- **Rotas**: `POST /api/v1/assistente/mensagens`,
+  `GET /api/v1/assistente/conversas`, `GET`/`DELETE
+  /api/v1/assistente/conversas/{id}` e `GET /api/v1/assistente/limite`.
+- **Testes**: a IA é simulada (`apps/assistente/tests/`), então o `pytest` não
+  gasta cota nem precisa de chave.
+
+**Dados para testar**: a loja demo tem poucos pedidos. Depois do `seed_demo`,
+rode `python manage.py seed_assistente` para criar ~20 produtos, ~150 pedidos
+dos últimos 6 meses em vários canais e despesas mensais para as duas lojas
+demo (`--recriar` apaga e gera de novo). No plano gratuito do Gemini o Google
+pode usar o conteúdo enviado para melhorar os produtos dele — prefira testar
+com esses dados de demonstração.
 
 ## Integração com o Mercado Livre (OAuth)
 

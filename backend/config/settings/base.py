@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "apps.fornecedores",
     "apps.financeiro",
     "apps.notificacoes",
+    "apps.assistente",
 ]
 
 MIDDLEWARE = [
@@ -128,6 +129,18 @@ MERCADO_LIVRE_REDIRECT_URI = env("MERCADO_LIVRE_REDIRECT_URI", default="")
 # de processar o code (sucesso ou erro).
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
 
+# Assistente de vendas: qualquer provedor compatível com a API da OpenAI
+# (padrão: Google Gemini). A chave pode vir de LLM_API_KEY ou GEMINI_API_KEY.
+LLM_BASE_URL = env(
+    "LLM_BASE_URL", default="https://generativelanguage.googleapis.com/v1beta/openai/"
+)
+LLM_API_KEY = env("LLM_API_KEY", default="") or env("GEMINI_API_KEY", default="")
+LLM_MODELOS = env.list(
+    "LLM_MODELOS", default=["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.1-flash-lite"]
+)
+LLM_TIMEOUT = env.int("LLM_TIMEOUT", default=60)
+ASSISTENTE_LIMITE_DIARIO = env.int("ASSISTENTE_LIMITE_DIARIO", default=50)
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -188,6 +201,10 @@ SPECTACULAR_SETTINGS = {
         {
             "name": "notificacoes",
             "description": "Avisos e alertas para o vendedor",
+        },
+        {
+            "name": "assistente",
+            "description": "Chatbot que responde perguntas sobre as vendas do vendedor",
         },
     ],
 }
